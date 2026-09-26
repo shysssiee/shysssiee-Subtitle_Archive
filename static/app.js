@@ -16,17 +16,95 @@
     const label = disclosure.querySelector('summary');
     if (label) label.firstChild.textContent = disclosure.open ? '收起雙語逐字稿 ' : '展開雙語逐字稿 ';
   });
+  const memberEditor = document.querySelector('.member-editor');
+  const episodeForm = document.querySelector('.episode-form');
+  if (memberEditor && episodeForm) {
+    const field = memberEditor.querySelector('input[name="member"]');
+    const input = document.querySelector('#member-input');
+    const suggestions = document.querySelector('#member-suggestions');
+    const chips = document.querySelector('#member-chips');
+    const groupSelect = document.querySelector('#group-select');
+    const catalog = JSON.parse(memberEditor.dataset.catalog || '[]');
+    let tags = [...new Set((field.value || '').split(/[,，;；\n]+/).map(x => x.trim()).filter(Boolean))];
+    function paintTags() {
+      field.value = tags.join(', ');
+      chips.replaceChildren();
+      tags.forEach(name => {
+        const chip = document.createElement('span');
+        chip.className = 'member-chip';
+        chip.append(document.createTextNode(name));
+        const remove = document.createElement('button');
+        remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `移除 ${name}`);
+        remove.addEventListener('click', () => { tags = tags.filter(x => x !== name); paintTags(); input.focus(); });
+        chip.append(remove); chips.append(chip);
+      });
+    }
+    function paintSuggestions() {
+      suggestions.replaceChildren();
+      const group = +(groupSelect?.value || 0);
+      const needle = input.value.trim().toLocaleLowerCase();
+      catalog.filter(x => x.group === group && !tags.includes(x.name) && (!needle || x.name.toLocaleLowerCase().includes(needle))).slice(0,8).forEach(x => {
+        const option = document.createElement('button'); option.type = 'button'; option.textContent = x.name;
+        option.addEventListener('click', () => { input.value = x.name; commit(); input.focus(); });
+        suggestions.append(option);
+      });
+    }
+    function commit() {
+      const names = input.value.split(/[,，;；\n]+/).map(x => x.trim()).filter(Boolean);
+      for (const name of names) if (!tags.includes(name) && tags.length < 30) tags.push(name.slice(0,80));
+      input.value = ''; paintTags(); paintSuggestions();
+    }
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ',' || event.key === '，') { event.preventDefault(); commit(); }
+    });
+    input.addEventListener('input', () => { if (/[,，]$/.test(input.value)) commit(); else paintSuggestions(); });
+    groupSelect?.addEventListener('change', paintSuggestions);
+    episodeForm.addEventListener('submit', event => {
+      commit();
+      const status = episodeForm.querySelector('select[name="status"]').value;
+      if (status === 'published' && episodeForm.dataset.wasStatus !== 'published') {
+        if (!window.confirm('確定公開發布這篇文章嗎？公開後會出現在網站上。')) { event.preventDefault(); return; }
+        episodeForm.querySelector('input[name="confirm_publish"]').value = '1';
+      }
+    });
+    paintTags(); paintSuggestions();
+  }
+  document.querySelectorAll('.delete-form').forEach(form => form.addEventListener('submit', event => {
+    if (!window.confirm('確定刪除這篇文章嗎？後台無法直接復原，請先下載資料庫備份。')) event.preventDefault();
+    else form.querySelector('input[name="confirm_delete"]').value = '1';
+  }));
   const holder = document.querySelector('.youtube-placeholder[data-youtube]');
   const article = document.querySelector('.episode-article');
   const transcript = document.querySelector('#transcript');
   const lines = [...document.querySelectorAll('.line[data-time]')];
   const offsetInput = document.querySelector('#offset');
   const playButton = document.querySelector('#play-toggle');
+  const seekBack = document.querySelector('#seek-back');
+  const seekForward = document.querySelector('#seek-forward');
+  const progress = document.querySelector('#seek-progress');
+  const timeDisplay = document.querySelector('#time-display');
+  const follow = document.querySelector('#auto-follow');
   const rate = document.querySelector('#playback-rate');
   const box = document.querySelector('#player-box');
   const anchor = document.querySelector('#player-anchor');
   const offset = () => Math.max(-30, Math.min(30, +(offsetInput?.value || 0) || 0));
-  let player, ready = false, playing = false, timer, pendingPlay = false, pendingSeek = null, activeLine = null;
+  let player, ready = false, playing = false, timer, pendingPlay = false, pendingSeek = null, activeLine = null, scrubbing = false;
+  const symbols = {
+    play: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg>'
+  };
+  function clock(seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) return '--:--';
+    const n = Math.floor(seconds);
+    return n >= 3600 ? `${Math.floor(n/3600)}:${String(Math.floor(n%3600/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}` : `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;
+  }
+  function updateTime() {
+    if (!ready || !player?.getCurrentTime) return;
+    const current = player.getCurrentTime() || 0;
+    const duration = player.getDuration?.() || 0;
+    if (timeDisplay) timeDisplay.textContent = `${clock(scrubbing && duration ? +progress.value / 1000 * duration : current)} / ${duration ? clock(duration) : '--:--'}`;
+    if (progress) { progress.disabled = !duration; if (duration && !scrubbing) progress.value = String(Math.round(Math.min(1,current/duration)*1000)); }
+  }
 
   function dock() {
     if (!box || !anchor) return;
@@ -43,22 +121,31 @@
   }
   function setPlaying(value) {
     playing = value;
-    if (playButton) { playButton.textContent = value ? 'Ⅱ 暫停' : '▶ 播放'; playButton.setAttribute('aria-label', value ? '暫停播放' : '播放影片'); }
+    if (playButton) { playButton.innerHTML = symbols[value ? 'pause' : 'play']; playButton.setAttribute('aria-label', value ? '暫停播放' : '播放影片'); }
     dock();
   }
+  function centerActiveLine() {
+    if (follow?.checked && activeLine && disclosure?.open && transcript) {
+      transcript.scrollTo({top: activeLine.offsetTop - transcript.clientHeight / 2 + activeLine.clientHeight / 2, behavior:'smooth'});
+    }
+  }
+  follow?.addEventListener('change', centerActiveLine);
+  disclosure?.addEventListener('toggle', centerActiveLine);
   function caption() {
     if (!ready || !player?.getCurrentTime) return;
     let current = null;
     const time = player.getCurrentTime();
     for (const line of lines) if (+line.dataset.time + offset() <= time + .15) current = line;
+    updateTime();
     if (current === activeLine) return;
     activeLine?.classList.remove('active');
     current?.classList.add('active');
     activeLine = current;
     const ko = document.querySelector('#live-ko');
     const zh = document.querySelector('#live-zh');
-    if (ko) ko.textContent = current?.querySelector('.ko')?.textContent || (current ? '' : '等待字幕開始…');
-    if (zh) zh.textContent = current?.querySelector('.zh')?.textContent || '';
+    if (ko) ko.textContent = current?.querySelector('.ko')?.textContent || '';
+    if (zh) zh.textContent = current?.querySelector('.zh')?.textContent || (current ? '' : '等待字幕開始…');
+    centerActiveLine();
   }
   function loadPlayer(autoPlay = false) {
     if (!holder || holder.querySelector('iframe')) {
@@ -81,6 +168,7 @@
       player = new YT.Player(frame, {events: {
         onReady: () => {
           ready = true;
+          updateTime();
           if (pendingSeek !== null) { player.seekTo(pendingSeek, true); pendingSeek = null; }
           if (rate?.value) player.setPlaybackRate(+rate.value);
           if (pendingPlay && !document.hidden) player.playVideo();
@@ -107,6 +195,17 @@
   playButton?.addEventListener('click', () => {
     if (!ready) { loadPlayer(true); return; }
     if (playing) player.pauseVideo(); else player.playVideo();
+  });
+  for (const [button,delta] of [[seekBack,-10],[seekForward,10]]) button?.addEventListener('click', () => {
+    if (!ready) { pendingSeek = Math.max(0,(pendingSeek || 0)+delta); loadPlayer(true); return; }
+    player.seekTo(Math.max(0,Math.min(player.getDuration?.() || Infinity,player.getCurrentTime()+delta)),true);
+    updateTime(); caption();
+  });
+  progress?.addEventListener('input', () => { scrubbing = true; updateTime(); });
+  progress?.addEventListener('change', () => {
+    const duration = player?.getDuration?.() || 0;
+    if (ready && duration) player.seekTo(+progress.value / 1000 * duration,true);
+    scrubbing = false; updateTime(); caption();
   });
   rate?.addEventListener('change', () => {
     if (!ready) return;
@@ -165,7 +264,7 @@
         button.textContent = +button.dataset.rating <= value ? '★' : '☆';
         button.setAttribute('aria-pressed', String(+button.dataset.rating === value));
       });
-      if (value && ratingStatus) ratingStatus.textContent = `妳的評分：${value} 星（僅儲存在這台裝置）`;
+      if (value && ratingStatus) ratingStatus.textContent = `妳的評分：${value} 星`;
     }
     try { paint(+(localStorage.getItem(key) || 0)); } catch { /* Storage may be disabled. */ }
     stars.forEach(button => button.addEventListener('click', () => {

@@ -4,7 +4,11 @@
   const cards = [...list.querySelectorAll('.episode-row')];
   const empty = document.querySelector('#static-empty');
   const query = document.querySelector('#static-query');
-  let group = '';
+  let group = new URLSearchParams(location.search).get('group') || '';
+  const initialChip = [...document.querySelectorAll('[data-filter]')].find(button => button.dataset.filter === group);
+  if (initialChip) {
+    document.querySelectorAll('[data-filter]').forEach(button => button.classList.toggle('selected', button === initialChip));
+  } else group = '';
   function filter() {
     const term = (query?.value || '').trim().toLocaleLowerCase();
     let visible = 0;
@@ -22,4 +26,5 @@
   }));
   query?.addEventListener('input', filter);
   document.querySelector('#static-search')?.addEventListener('submit', event => { event.preventDefault(); filter(); });
+  filter();
 })();
