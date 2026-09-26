@@ -87,6 +87,27 @@
   const rate = document.querySelector('#playback-rate');
   const box = document.querySelector('#player-box');
   const anchor = document.querySelector('#player-anchor');
+  const captionBox = document.querySelector('.live-caption');
+  const captionSizeValue = document.querySelector('#caption-size-value');
+  const captionSizeKey = 'voice-archive-caption-size';
+  let captionSize = 12;
+  try {
+    const saved = Number(localStorage.getItem(captionSizeKey));
+    if (Number.isInteger(saved) && saved >= 12 && saved <= 16) captionSize = saved;
+  } catch { /* Private browsing. */ }
+  function setCaptionSize(size) {
+    captionSize = Math.max(12, Math.min(16, size));
+    captionBox?.style.setProperty('--caption-size', `${captionSize}pt`);
+    if (captionSizeValue) captionSizeValue.textContent = `${captionSize}pt`;
+    document.querySelectorAll('[data-caption-size]').forEach(button => {
+      button.disabled = button.dataset.captionSize === '-1' ? captionSize === 12 : captionSize === 16;
+    });
+    try { localStorage.setItem(captionSizeKey, String(captionSize)); } catch { /* Private browsing. */ }
+  }
+  if (captionBox) {
+    setCaptionSize(captionSize);
+    captionBox.querySelectorAll('[data-caption-size]').forEach(button => button.addEventListener('click', () => setCaptionSize(captionSize + Number(button.dataset.captionSize))));
+  }
   const offset = () => Math.max(-30, Math.min(30, +(offsetInput?.value || 0) || 0));
   let player, ready = false, playing = false, timer, pendingPlay = false, pendingSeek = null, activeLine = null, scrubbing = false;
   const symbols = {

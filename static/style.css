@@ -115,3 +115,23 @@ header nav{display:flex;align-items:center;gap:20px}header nav a{padding:8px 0}
 [data-theme=dark] .floating-player{background:#222334!important}[data-theme=dark] .caption-zh{background:#303245;color:#f0edf6}[data-theme=dark] .caption-ko{background:#3b354f;color:#f0edf6}[data-theme=dark] .live-caption{background:#2c293e;border-color:#59516c}[data-theme=dark] .caption-notice{background:#4a422f;color:#f5e6bb;border-color:#6b603e}[data-theme=dark] .source,[data-theme=dark] .admin-links a,[data-theme=dark] .admin-filters,[data-theme=dark] .admin-table,[data-theme=dark] .edit-delete{background:#2b2939;color:#ece8f5;border-color:#554d68}[data-theme=dark] .admin-table-head{background:#39334b}[data-theme=dark] .admin-table-row{border-color:#554d68}
 .member-suggestions{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.member-suggestions button{background:#f8f5fb;border:1px solid #ded5e8;border-radius:99px;padding:3px 10px;color:#5d5080;font-size:13px}.member-suggestions button:hover,.member-suggestions button:focus-visible{background:#e9dff4}
 #copy-url svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+/* v1.4.0 layout refinement: keep the bilingual caption adjacent to the video. */
+.episode-article .youtube-placeholder{display:block;margin-bottom:10px}
+.episode-article .live-caption{min-height:0;margin:0;padding:12px;gap:6px}
+.caption-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:32px}
+.caption-size{display:flex;align-items:center;gap:4px;white-space:nowrap;font-size:12px;color:var(--secondary)}
+.caption-size button{width:32px;height:32px;display:grid;place-items:center;border:1px solid #dcd3ed;border-radius:9px;background:#fff;color:#62538a;font-size:12px;font-weight:800;cursor:pointer}
+.caption-size button:hover,.caption-size button:focus-visible{background:#eae2f6}
+.caption-size button:disabled{opacity:.4;cursor:default}
+.caption-size-value{font-variant-numeric:tabular-nums}
+.caption-row #live-zh,.caption-row #live-ko{font-size:var(--caption-size,12pt);line-height:1.4;font-weight:600}
+.episode-article .caption-row{min-height:46px}
+.episode-article .listening-controls{margin:9px 4px 4px}
+.episode-article .source{margin:10px 0 12px}
+.floating-player .live-caption{max-height:180px;overflow:auto}
+.floating-player .caption-heading{min-height:28px}
+.floating-player .caption-size button{width:28px;height:28px}
+.floating-player .caption-row #live-zh,.floating-player .caption-row #live-ko{font-size:var(--caption-size,12pt);line-height:1.3}
+@media(max-width:700px){.episode-article .youtube-placeholder{margin-bottom:8px}.episode-article .live-caption{padding:9px}.episode-article .caption-row{min-height:42px;padding:7px}.caption-heading{min-height:30px}.episode-article .listening-controls{margin-top:7px}.episode-article .source{margin-top:8px}}
+@media(min-width:701px) and (max-width:1024px){.episode-article .live-caption{margin-bottom:0}.episode-article .listening-controls{margin-top:8px}}
+[data-theme=dark] .caption-size button{background:#39334b;color:#ede6f8;border-color:#645a74}
