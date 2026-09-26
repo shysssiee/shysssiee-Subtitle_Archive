@@ -1,4 +1,21 @@
 (() => {
+  const themeKey = 'voice-archive-theme';
+  const switcher = document.querySelector('.theme-switch');
+  function applyTheme(value) {
+    document.documentElement.dataset.theme = value;
+    switcher?.setAttribute('aria-checked', String(value === 'dark'));
+  }
+  try { applyTheme(localStorage.getItem(themeKey) || 'light'); } catch { applyTheme('light'); }
+  switcher?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(themeKey, next); } catch { /* Private browsing. */ }
+  });
+  const disclosure = document.querySelector('.transcript-disclosure');
+  disclosure?.addEventListener('toggle', () => {
+    const label = disclosure.querySelector('summary');
+    if (label) label.firstChild.textContent = disclosure.open ? '收起雙語逐字稿 ' : '展開雙語逐字稿 ';
+  });
   const holder = document.querySelector('.youtube-placeholder[data-youtube]');
   const article = document.querySelector('.episode-article');
   const transcript = document.querySelector('#transcript');
@@ -26,7 +43,7 @@
   }
   function setPlaying(value) {
     playing = value;
-    if (playButton) playButton.textContent = value ? 'Ⅱ 暫停' : '▶ 播放';
+    if (playButton) { playButton.textContent = value ? 'Ⅱ 暫停' : '▶ 播放'; playButton.setAttribute('aria-label', value ? '暫停播放' : '播放影片'); }
     dock();
   }
   function caption() {
