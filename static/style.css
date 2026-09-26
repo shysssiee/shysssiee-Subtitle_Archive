@@ -28,5 +28,43 @@
   .public-page .home-layout>.list{grid-template-columns:1fr}
   .admin-page .page-layout{grid-template-columns:230px minmax(0,1fr)}
 }
+.episode-article{max-width:100%!important}.episode-article>.meta{display:flex;flex-wrap:wrap;gap:6px 18px;color:#697184}
+.episode-main{min-width:0}.playback-column,.transcript-area{min-width:0}
+.episode-article .player-box{max-width:100%;margin:22px 0 12px}
+.listening-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 2px}
+.listening-controls button{border:0;border-radius:12px;background:var(--accent);color:white;font-weight:700;padding:10px 22px;min-height:44px}
+.listening-controls label{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--ink)}
+.listening-controls select{padding:8px 12px;border:1px solid #d7d1d9;border-radius:10px;background:white;color:var(--ink)}
+.live-caption{display:grid;align-content:center;gap:3px;min-height:104px;padding:14px 18px;border-radius:var(--corner);background:#f6f1f5;color:var(--ink)}
+.live-caption-label{font-size:12px;color:var(--secondary);font-weight:700;letter-spacing:.04em}
+#live-ko{font-size:var(--body-size);font-weight:700;line-height:1.5}#live-zh{font-size:var(--body-size);color:#596072;line-height:1.5}
+.episode-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 30px}
+.share-panel,.rating-panel{background:white;border:1px solid #eee8e4;border-radius:var(--corner);padding:16px;min-width:0}
+.share-panel strong,.rating-panel strong{display:block;margin-bottom:10px}.share-panel small,.rating-panel small{color:#777a87}
+.share-buttons{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:7px}
+.share-buttons a,.share-buttons button{border:1px solid #e3dce8;background:#f9f6fa;border-radius:99px;padding:7px 12px;text-decoration:none;color:var(--ink);font-size:13px;font-weight:700;white-space:nowrap;line-height:1.5}
+.share-buttons a:hover,.share-buttons button:hover{border-color:var(--secondary);color:var(--secondary)}
+.rating-stars{display:flex;gap:3px;margin-bottom:6px}
+.rating-stars button{border:0;background:transparent;color:#dc887d;font-size:32px;line-height:1;padding:2px 3px}
+.floating-player{position:fixed;z-index:30;right:clamp(8px,2vw,32px);bottom:8px;width:min(390px,calc(100vw - 16px));margin:0!important;padding:8px!important;box-shadow:0 12px 40px #1c2a4a55;border:2px solid var(--secondary)!important}
+.floating-player .youtube-placeholder{min-height:200px;max-height:220px}
+.floating-player .source{display:none}.floating-player .listening-controls{margin:6px 2px}.floating-player .live-caption{min-height:64px;padding:7px 10px;max-height:100px;overflow:hidden}
+.floating-player .live-caption-label{display:none}.floating-player #live-ko,.floating-player #live-zh{font-size:14px;line-height:1.35}
+.has-floating-player{padding-bottom:20px}
+@media(min-width:900px){
+  .episode-main{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.85fr);gap:clamp(20px,3vw,40px);align-items:start}
+  .playback-column{position:sticky;top:14px}
+  .episode-actions{grid-template-columns:1fr}
+  .transcript-area .transcript{max-height:min(67vh,700px)}
+  .transcript-area h2{margin-top:20px}
+}
+@media(max-width:700px){
+  .episode-article h1{font-size:clamp(24px,6vw,var(--title-size))}
+  .episode-article .player-box{margin-top:18px}
+  .episode-actions{grid-template-columns:1fr}
+  .floating-player{left:8px;right:8px;width:auto}
+  .floating-player .youtube-placeholder{min-height:200px;max-height:200px}
+  .floating-player .listening-controls button{padding:7px 14px}
+}
 .form label.check{display:flex;align-items:center;gap:9px}.form label.check input{width:auto;accent-color:var(--accent)}
 .pagination{display:flex;justify-content:space-between;gap:10px;margin:14px 0}.pagination a{font-size:14px;text-decoration:none;color:var(--secondary)}.offset{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;font-size:13px;color:#6d7080}.offset input{width:72px;border:1px solid #d9d5d5;border-radius:7px;padding:3px 6px;color:var(--ink)}.offset small{width:100%;font-size:12px}
