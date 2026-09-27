@@ -93,20 +93,31 @@
   let captionSize = 12;
   try {
     const saved = Number(localStorage.getItem(captionSizeKey));
-    if (Number.isInteger(saved) && saved >= 12 && saved <= 16) captionSize = saved;
+    if (Number.isInteger(saved) && saved >= 12 && saved <= 22) captionSize = saved;
   } catch { /* Private browsing. */ }
   function setCaptionSize(size) {
-    captionSize = Math.max(12, Math.min(16, size));
+    captionSize = Math.max(12, Math.min(22, size));
     captionBox?.style.setProperty('--caption-size', `${captionSize}pt`);
     if (captionSizeValue) captionSizeValue.textContent = `${captionSize}pt`;
     document.querySelectorAll('[data-caption-size]').forEach(button => {
-      button.disabled = button.dataset.captionSize === '-1' ? captionSize === 12 : captionSize === 16;
+      button.disabled = button.dataset.captionSize === '-1' ? captionSize === 12 : captionSize === 22;
     });
     try { localStorage.setItem(captionSizeKey, String(captionSize)); } catch { /* Private browsing. */ }
   }
   if (captionBox) {
     setCaptionSize(captionSize);
     captionBox.querySelectorAll('[data-caption-size]').forEach(button => button.addEventListener('click', () => setCaptionSize(captionSize + Number(button.dataset.captionSize))));
+    const langKey = 'voice-archive-caption-language';
+    function setLanguage(value) {
+      const lang = ['zh','ko','both'].includes(value) ? value : 'zh';
+      captionBox.dataset.language = lang;
+      captionBox.querySelectorAll('[data-caption-lang]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.captionLang === lang)));
+      try { localStorage.setItem(langKey, lang); } catch { /* Private browsing. */ }
+    }
+    let language = 'zh';
+    try { language = localStorage.getItem(langKey) || 'zh'; } catch { /* Private browsing. */ }
+    setLanguage(language);
+    captionBox.querySelectorAll('[data-caption-lang]').forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.captionLang)));
   }
   const offset = () => Math.max(-30, Math.min(30, +(offsetInput?.value || 0) || 0));
   let player, ready = false, playing = false, timer, pendingPlay = false, pendingSeek = null, activeLine = null, scrubbing = false;
