@@ -44,7 +44,7 @@
       const group = +(groupSelect?.value || 0);
       const needle = input.value.trim().toLocaleLowerCase();
       catalog.filter(x => x.group === group && !tags.includes(x.name) && (!needle || x.name.toLocaleLowerCase().includes(needle))).slice(0,8).forEach(x => {
-        const option = document.createElement('button'); option.type = 'button'; option.textContent = x.name;
+        const option = document.createElement('button'); option.type = 'button'; option.textContent = x.display || x.name;
         option.addEventListener('click', () => { input.value = x.name; commit(); input.focus(); });
         suggestions.append(option);
       });
@@ -58,12 +58,16 @@
       if (event.key === 'Enter' || event.key === ',' || event.key === '，') { event.preventDefault(); commit(); }
     });
     input.addEventListener('input', () => { if (/[,，]$/.test(input.value)) commit(); else paintSuggestions(); });
+    memberEditor.querySelectorAll('[data-add-member]').forEach(button => button.addEventListener('click', () => {
+      input.value = button.dataset.addMember; commit(); input.focus();
+    }));
     groupSelect?.addEventListener('change', paintSuggestions);
     episodeForm.addEventListener('submit', event => {
       commit();
       const status = episodeForm.querySelector('select[name="status"]').value;
-      if (status === 'published' && episodeForm.dataset.wasStatus !== 'published') {
-        if (!window.confirm('確定公開發布這篇文章嗎？公開後會出現在網站上。')) { event.preventDefault(); return; }
+      if (['published','private'].includes(status) && episodeForm.dataset.wasStatus !== status) {
+        const message = status === 'private' ? '確定將這篇文章設為私密嗎？匯出網站時需要設定共用密碼。' : '確定公開發布這篇文章嗎？公開後會出現在網站上。';
+        if (!window.confirm(message)) { event.preventDefault(); return; }
         episodeForm.querySelector('input[name="confirm_publish"]').value = '1';
       }
     });
@@ -73,6 +77,40 @@
     if (!window.confirm('確定刪除這篇文章嗎？後台無法直接復原，請先下載資料庫備份。')) event.preventDefault();
     else form.querySelector('input[name="confirm_delete"]').value = '1';
   }));
+  document.querySelectorAll('[data-delete-member]').forEach(button => button.addEventListener('click', event => {
+    if (!window.confirm('確定刪除這位成員嗎？文章中的既有成員文字不會刪除，但前台篩選選單將不再顯示。')) { event.preventDefault(); return; }
+    button.form.querySelector('input[name="confirm_delete"]').value='1';
+  }));
+  document.querySelector('[data-confirm="compact"]')?.addEventListener('submit', event => {
+    if (!window.confirm('整理前請先下載資料庫備份。確定已完成備份並開始整理嗎？')) { event.preventDefault(); return; }
+    let field=event.currentTarget.querySelector('input[name="confirm_compact"]');
+    if (!field) { field=document.createElement('input'); field.type='hidden'; field.name='confirm_compact'; event.currentTarget.append(field); }
+    field.value='1';
+  });
+  document.querySelectorAll('.report-link').forEach(link => {
+    try {
+      const target = new URL(link.href, location.href);
+      target.searchParams.set('article', location.href.split('#')[0]);
+      link.href = target.href;
+    } catch { /* Keep the plain report link if URL parsing is unavailable. */ }
+  });
+  const coverInput=document.querySelector('input[name="cover_file"]');
+  coverInput?.addEventListener('change', () => {
+    const file=coverInput.files?.[0]; if (!file || !file.type.startsWith('image/')) return;
+    const image=new Image(); const url=URL.createObjectURL(file);
+    image.onload=() => {
+      URL.revokeObjectURL(url);
+      if (file.size<500000 && image.width<=1200 && image.height<=630) return;
+      const scale=Math.min(1,1200/image.width,630/image.height), canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(image.width*scale)); canvas.height=Math.max(1,Math.round(image.height*scale));
+      canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+      canvas.toBlob(blob => {
+        if (!blob) return; const transfer=new DataTransfer();
+        transfer.items.add(new File([blob],file.name.replace(/\.[^.]+$/,'.webp'),{type:'image/webp'})); coverInput.files=transfer.files;
+      },'image/webp',.82);
+    };
+    image.src=url;
+  });
   const holder = document.querySelector('.youtube-placeholder[data-youtube]');
   const article = document.querySelector('.episode-article');
   const transcript = document.querySelector('#transcript');
@@ -90,17 +128,19 @@
   const captionBox = document.querySelector('.live-caption');
   const captionSizeValue = document.querySelector('#caption-size-value');
   const captionSizeKey = 'voice-archive-caption-size';
+  const theaterButton = document.querySelector('.theater-toggle');
+  const theaterClose = document.querySelector('.theater-close');
   let captionSize = 12;
   try {
     const saved = Number(localStorage.getItem(captionSizeKey));
-    if (Number.isInteger(saved) && saved >= 12 && saved <= 22) captionSize = saved;
+    if (Number.isInteger(saved) && saved >= 12 && saved <= 16) captionSize = saved;
   } catch { /* Private browsing. */ }
   function setCaptionSize(size) {
-    captionSize = Math.max(12, Math.min(22, size));
+    captionSize = Math.max(12, Math.min(16, size));
     captionBox?.style.setProperty('--caption-size', `${captionSize}pt`);
     if (captionSizeValue) captionSizeValue.textContent = `${captionSize}pt`;
     document.querySelectorAll('[data-caption-size]').forEach(button => {
-      button.disabled = button.dataset.captionSize === '-1' ? captionSize === 12 : captionSize === 22;
+      button.disabled = button.dataset.captionSize === '-1' ? captionSize === 12 : captionSize === 16;
     });
     try { localStorage.setItem(captionSizeKey, String(captionSize)); } catch { /* Private browsing. */ }
   }
@@ -121,6 +161,19 @@
   }
   const offset = () => Math.max(-30, Math.min(30, +(offsetInput?.value || 0) || 0));
   let player, ready = false, playing = false, timer, pendingPlay = false, pendingSeek = null, activeLine = null, scrubbing = false;
+  function setTheater(open) {
+    if (!box) return;
+    box.classList.toggle('theater-player', open);
+    document.body.classList.toggle('has-theater-player', open);
+    theaterButton?.setAttribute('aria-pressed', String(open));
+    if (open && box.classList.contains('floating-player')) {
+      box.classList.remove('floating-player'); document.body.classList.remove('has-floating-player');
+      if (anchor) anchor.style.minHeight = '';
+    }
+  }
+  theaterButton?.addEventListener('click', () => setTheater(!box?.classList.contains('theater-player')));
+  theaterClose?.addEventListener('click', () => setTheater(false));
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') setTheater(false); });
   const symbols = {
     play: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
     pause: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg>'
@@ -140,7 +193,7 @@
 
   function dock() {
     if (!box || !anchor) return;
-    const float = ready && playing && anchor.getBoundingClientRect().bottom < 0;
+    const float = ready && playing && !box.classList.contains('theater-player') && anchor.getBoundingClientRect().bottom < 0;
     if (float && !box.classList.contains('floating-player')) {
       anchor.style.minHeight = `${box.offsetHeight}px`;
       box.classList.add('floating-player');
