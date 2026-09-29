@@ -34,7 +34,7 @@
       form.closest('.private-lock').hidden=true; content.hidden=false;
       const source=document.currentScript?.src || [...document.scripts].find(x=>x.src.includes('/private.js'))?.src || '';
       const base=source ? new URL('.',source) : new URL('../static/',location.href);
-      for (const file of ['app.js?v=1.4.3-r3-unlocked', ...(content.querySelector('#static-list')?['export.js?v=1.4.3-r3-unlocked']:[])]) {
+      for (const file of ['app.js?v=1.4.3-r4-unlocked', ...(content.querySelector('#static-list')?['export.js?v=1.4.3-r4-unlocked']:[])]) {
         const script=document.createElement('script'); script.src=new URL(file,base); document.body.append(script);
       }
     } catch { error.textContent='密碼不正確，請重新輸入。'; button.disabled=false; try { sessionStorage.removeItem('voice-archive-pop-live'); } catch {} }

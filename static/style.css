@@ -223,3 +223,21 @@ header nav{display:flex;align-items:center;gap:20px}header nav a{padding:8px 0}
 [data-theme=dark] .podcast-index .home-layout>.podcast-hero{background-color:#2a281e!important}
 
 [data-theme=dark] .podcast-index .podcast-hero-copy{background:linear-gradient(90deg,#27261ff2 0%,#27261fd9 75%,#27261f00 100%);color:#fff8de}
+
+/* v1.4.3 r4: matching hero geometry and compact admin editing */
+.public-page.podcast-index .home-layout>.podcast-hero{min-height:240px!important;padding:clamp(28px,5vw,54px)!important;background:linear-gradient(90deg,#fffdf4ec 0%,#fffbe6b8 44%,#fffbe620 100%)!important}
+.podcast-hero-art{z-index:-1}
+.podcast-hero-copy{width:auto;padding:0;border:0;border-radius:0;background:transparent!important}
+.podcast-index .podcast-hero h1{max-width:380px!important}
+[data-theme=dark] .public-page.podcast-index .home-layout>.podcast-hero{background:linear-gradient(90deg,#27261ff0 0%,#27261fc0 48%,#27261f55 100%)!important}
+[data-theme=dark] .podcast-index .podcast-hero-copy{background:transparent!important}
+.admin-title{align-items:center;flex-wrap:wrap;margin-bottom:12px}.admin-title h1{margin:0}.admin-title>.button{display:inline-flex;align-items:center;justify-content:center;min-height:42px}
+.compact-links{align-items:center}.compact-links a{display:inline-flex;align-items:center;justify-content:center}
+.group-manage-card{margin:22px 0;padding:18px;border:1px solid #e5dfeb;border-radius:16px;background:#fff}.group-manage-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.group-manage-heading h2{margin:0 0 10px}.group-manage-card h3{font-size:16px;margin:22px 0 9px}.group-manage-card .member-manage-row{margin:10px 0}.group-manage-card .admin-row{margin:4px 0 8px}
+[data-theme=dark] .group-manage-card{background:#252633;border-color:#4f4b60}
+@media(max-width:700px){.public-page.podcast-index .home-layout>.podcast-hero{min-height:200px!important}.group-manage-card{padding:13px}.group-manage-card .member-manage-row{grid-template-columns:1fr 1fr}.admin-title{align-items:center}}
+/* Keep image above the hero background and the tint between image and copy. */
+.podcast-hero-art{z-index:0}
+.public-page.podcast-index .home-layout>.podcast-hero::before{content:"";position:absolute;z-index:1;inset:0;background:linear-gradient(90deg,#fffdf4ec 0%,#fffbe6b8 44%,#fffbe620 100%);pointer-events:none}
+.podcast-index .podcast-hero-copy{position:relative;z-index:2}
+[data-theme=dark] .public-page.podcast-index .home-layout>.podcast-hero::before{background:linear-gradient(90deg,#27261ff0 0%,#27261fc0 48%,#27261f55 100%)}
