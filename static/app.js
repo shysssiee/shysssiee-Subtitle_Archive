@@ -74,8 +74,13 @@
     paintTags(); paintSuggestions();
   }
   document.querySelectorAll('.delete-form').forEach(form => form.addEventListener('submit', event => {
-    if (!window.confirm('確定刪除這篇文章嗎？後台無法直接復原，請先下載資料庫備份。')) event.preventDefault();
+    if (!window.confirm('確定將這篇文章移入回收區嗎？30 天內可復原。')) event.preventDefault();
     else form.querySelector('input[name="confirm_delete"]').value = '1';
+  }));
+  document.querySelectorAll('.category-delete').forEach(form => form.addEventListener('submit', event => {
+    const count=Number(form.dataset.categoryCount || 0);
+    if (!window.confirm(`確定刪除這個分類嗎？${count} 篇文章將改成未分類，文章本身會保留。`)) { event.preventDefault();return; }
+    form.querySelector('input[name="confirm_delete"]').value='1';
   }));
   document.querySelectorAll('[data-delete-member]').forEach(button => button.addEventListener('click', event => {
     if (!window.confirm('確定刪除這位成員嗎？文章中的既有成員文字不會刪除，但前台篩選選單將不再顯示。')) { event.preventDefault(); return; }
@@ -94,6 +99,9 @@
       link.href = target.href;
     } catch { /* Keep the plain report link if URL parsing is unavailable. */ }
   });
+  if (document.querySelector('#mv-admin-player')) {
+    const script=document.createElement('script');script.src='/static/mv.js?v=1.4.4-karaoke-r2';document.head.append(script);
+  }
   const coverInput=document.querySelector('input[name="cover_file"]');
   coverInput?.addEventListener('change', () => {
     const file=coverInput.files?.[0]; if (!file || !file.type.startsWith('image/')) return;

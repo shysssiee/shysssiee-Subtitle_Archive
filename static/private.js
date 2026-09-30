@@ -30,19 +30,17 @@
     const button=form.querySelector('button'); button.disabled=true; error.textContent='正在解鎖…';
     try {
       content.innerHTML=await unlock(password);
-      try { sessionStorage.setItem('voice-archive-pop-live',password); } catch {}
       form.closest('.private-lock').hidden=true; content.hidden=false;
       const source=document.currentScript?.src || [...document.scripts].find(x=>x.src.includes('/private.js'))?.src || '';
       const base=source ? new URL('.',source) : new URL('../static/',location.href);
-      for (const file of ['app.js?v=1.4.3-r4-unlocked', ...(content.querySelector('#static-list')?['export.js?v=1.4.3-r4-unlocked']:[])]) {
+      for (const file of ['app.js?v=1.4.4-layout-unlocked', ...(content.querySelector('#static-list')?['export.js?v=1.4.4-layout-unlocked']:[])]) {
         const script=document.createElement('script'); script.src=new URL(file,base); document.body.append(script);
       }
-    } catch { error.textContent='密碼不正確，請重新輸入。'; button.disabled=false; try { sessionStorage.removeItem('voice-archive-pop-live'); } catch {} }
+    } catch { error.textContent='密碼不正確，請重新輸入。'; button.disabled=false; }
   }
   form.addEventListener('submit',async event => {
     event.preventDefault();
     await openWith(new FormData(form).get('password'));
   });
-  try { const saved=sessionStorage.getItem('voice-archive-pop-live'); if(saved) openWith(saved); } catch {}
   addEventListener('pagehide',()=>{ content.replaceChildren(); content.hidden=true; });
 })();
