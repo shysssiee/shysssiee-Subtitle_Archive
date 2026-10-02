@@ -12,7 +12,7 @@
   let group = params.get('group') || '';
   let member = '';
   let page = 1;
-  const pageSize = 10;
+  const pageSize = 12;
   if (query) query.value = params.get('q') || '';
   const buttons = [...document.querySelectorAll('[data-filter]')];
   const memberButtons = [...document.querySelectorAll('[data-member]')];
@@ -30,7 +30,7 @@
   renderPodcastMembers();
   function shuffle() {
     if (!recommended) return;
-    const pool = cards.filter(card => (!group || card.dataset.group === group) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)));
+    const pool = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)));
     const choices = (pool.length > 2 ? pool.slice(1) : pool).slice();
     for (let i = choices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -45,7 +45,7 @@
     buttons.forEach(button => button.classList.toggle('selected', button.dataset.filter === group));
     memberButtons.forEach(button => button.classList.toggle('selected', button.dataset.member === member));
     const term = (query?.value || '').trim().toLocaleLowerCase();
-    const filtered = cards.filter(card => (!group || card.dataset.group === group) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)) && (!term || card.dataset.search.includes(term)));
+    const filtered = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)) && (!term || card.dataset.search.includes(term)));
     filtered.sort((a,b) => {
       if (!a.dataset.date || !b.dataset.date) return a.dataset.date ? -1 : b.dataset.date ? 1 : 0;
       return a.dataset.date.localeCompare(b.dataset.date) * (sort?.value === 'asc' ? 1 : -1);

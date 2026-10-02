@@ -1,0 +1,25 @@
+.public-page #static-list{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:18px}
+.public-page #static-list .episode-row{display:flex;flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;min-height:0}
+.public-page #static-list .mini-cover{width:100%;height:auto;aspect-ratio:16/9;border-radius:0;object-fit:cover}
+.public-page #static-list .episode-row>span:nth-child(2){padding:14px;flex:1}
+.public-page #static-list .episode-row strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;line-height:1.55;min-height:4.65em;font-size:15px}
+.public-page #static-list .episode-row>span:last-child{display:none}
+.public-page #static-list .episode-tags{display:none}
+.episode-groups{display:none!important}
+.public-page #static-list .episode-groups{display:block!important;font-size:12px;line-height:1.6;color:var(--secondary);margin-top:8px;font-weight:700}
+.public-page #static-list .card-lock{align-self:flex-end;margin:0 14px 10px}
+.public-page #static-empty{grid-column:1/-1}
+.public-page .episode-row .episode-date{margin-top:6px;color:#626779}
+.public-page .episode-row .episode-tags{margin-top:2px;line-height:1.6}
+.public-page .recommendations .episode-row{align-items:flex-start;gap:14px;padding:16px;min-height:120px}
+.public-page .recommendations .episode-row strong{font-size:16px;line-height:1.65;overflow-wrap:anywhere}
+.public-page .recommendations .episode-row small{font-size:13px;line-height:1.7;color:#626779}
+.public-page .recommendations .episode-row>span:last-child{align-self:center}
+.language-select{max-width:100px;padding:6px 8px;border:1px solid #ddd8e8;border-radius:9px;background:#fff;color:var(--ink);font-size:12px}
+header nav{gap:14px;flex-wrap:wrap}
+[data-theme=dark] .language-select{background:#252633;color:#f1eef7;border-color:#4f4b60}
+[data-theme=dark] .public-page .episode-row .episode-date,[data-theme=dark] .public-page .recommendations .episode-row small{color:#c6c1d3}
+.group-checkboxes{margin:0;padding:12px;border:1px solid #d9d5d5;border-radius:9px;display:flex;flex-wrap:wrap;gap:10px 18px}
+.group-checkboxes legend{font-size:14px;font-weight:700}.group-checkboxes .check{display:flex;align-items:center;gap:7px}.group-checkboxes input{width:auto}.group-checkboxes .hint{width:100%;margin:0}
+@media(min-width:701px) and (max-width:1024px){.public-page #static-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:700px){.public-page #static-list{grid-template-columns:1fr!important}.public-page #static-list .episode-row strong{min-height:0}header nav{gap:10px}.public-page .recommendations .episode-row{padding:13px;gap:12px}}
