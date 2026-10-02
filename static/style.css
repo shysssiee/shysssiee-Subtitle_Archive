@@ -302,3 +302,27 @@ header nav{display:flex;align-items:center;gap:20px}header nav a{padding:8px 0}
 @media(max-width:1000px){.mv-stage{grid-template-columns:1fr}.mv-player-column{position:relative;top:auto}.mv-stage .mv-video{max-height:52vh}.mv-stage .mv-video iframe{display:block}.mv-detail .karaoke-list{height:310px}.mv-stage .section-heading{display:flex;flex-wrap:wrap}.mv-stage .mv-toggles{flex-wrap:wrap}}
 @media(max-width:600px){.mv-stage{gap:12px}.mv-player-column{position:sticky;top:0;padding-bottom:4px;box-shadow:0 6px 16px #20152c14}.mv-player-column>.source,.mv-player-column>#mv-status:empty{display:none}.mv-stage .mv-lyrics{padding:12px}.mv-detail .karaoke-list{height:260px;padding:6px}.mv-detail .karaoke-ko{font-size:16px}.mv-detail .karaoke-roman{font-size:13px}.mv-transport{gap:7px;padding:8px 0}.mv-transport #mv-time{font-size:11px}.mv-transport select{width:65px}.admin-page .category-manage-row{width:100%;flex-wrap:wrap}.admin-page .category-manage-row .admin-row{flex:1;min-width:0}.admin-page .category-manage-row input[name=name]{width:100%;min-width:70px;flex:1}.admin-page .category-manage-row button{font-size:12px;padding:7px}.mv-lyric-tools{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.karaoke-list{scroll-behavior:auto}}
+
+/* v1.4.4 自訂巢狀分頁 */
+header nav{overflow:visible;flex-wrap:wrap}
+header nav .nav-dropdown{position:relative;display:inline-block}
+header nav .nav-dropdown>summary{list-style:none;cursor:pointer;padding:8px 0}
+header nav .nav-dropdown>summary::-webkit-details-marker{display:none}
+header nav .nav-dropdown>summary:after{content:'⌄';font-size:.8em;margin-left:4px}
+header nav .nav-submenu{position:absolute;z-index:30;top:100%;left:0;min-width:180px;display:grid;gap:2px;padding:8px;background:var(--bg);border:1px solid #e7e0e8;border-radius:12px;box-shadow:0 10px 28px #1c2a4a24;white-space:normal}
+header nav .nav-submenu>a,header nav .nav-submenu summary{display:block;padding:8px 10px;border-radius:8px;text-decoration:none;cursor:pointer}
+header nav .nav-submenu>a:hover,header nav .nav-submenu summary:hover{background:color-mix(in srgb,var(--secondary) 15%,white)}
+header nav .nav-submenu .nav-dropdown{display:block}
+header nav .nav-submenu .nav-submenu{top:0;left:calc(100% - 4px)}
+.page-manage-list{display:grid;gap:8px;margin-top:18px}
+.page-manage-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0;padding:10px 12px;border:1px solid #ebe5eb;border-radius:12px;background:#fff}
+.page-manage-title{min-width:0;overflow-wrap:anywhere;font-weight:700}
+.page-manage-title small{display:block;color:#777587;font-size:12px;font-weight:400}
+.page-manage-actions{display:flex;align-items:center;gap:8px;flex:none}
+.page-manage-actions form{margin:0}
+.page-manage-actions .danger{border:1px solid #ca9898;border-radius:10px;background:#fff3f1;color:#9b4444;padding:8px 12px}
+.custom-page{max-width:900px;margin-inline:auto}
+.custom-page-content{padding:18px 22px;border:1px solid #eee8e4;border-radius:var(--corner);background:#fff;white-space:normal}
+.custom-page-content p{white-space:pre-wrap;overflow-wrap:anywhere}
+[data-theme=dark] header nav .nav-submenu,[data-theme=dark] .page-manage-row,[data-theme=dark] .custom-page-content{background:#292733;color:#f3eff8;border-color:#5c5367}
+@media(max-width:700px){header nav .nav-submenu{position:static;min-width:170px;max-height:55vh;overflow:auto;box-shadow:none}header nav .nav-submenu .nav-submenu{position:static;box-shadow:none;border:0;padding:3px 8px}.page-manage-row{align-items:flex-start;flex-wrap:wrap;padding-left:12px}.page-manage-actions{margin-left:auto}.custom-page-content{padding:14px}}

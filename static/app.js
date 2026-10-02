@@ -73,6 +73,10 @@
     });
     paintTags(); paintSuggestions();
   }
+  document.querySelectorAll('[data-confirm="page-delete"]').forEach(form => form.addEventListener('submit', event => {
+    if (!window.confirm('確定刪除這個分頁嗎？若它有子分頁，底下的子分頁也會一併刪除。')) { event.preventDefault(); return; }
+    form.querySelector('input[name="confirm_delete"]').value='1';
+  }));
   document.querySelectorAll('.delete-form').forEach(form => form.addEventListener('submit', event => {
     if (!window.confirm('確定將這篇文章移入回收區嗎？30 天內可復原。')) event.preventDefault();
     else form.querySelector('input[name="confirm_delete"]').value = '1';
@@ -99,9 +103,6 @@
       link.href = target.href;
     } catch { /* Keep the plain report link if URL parsing is unavailable. */ }
   });
-  if (document.querySelector('#mv-admin-player')) {
-    const script=document.createElement('script');script.src='/static/mv.js?v=1.4.4-karaoke-r2';document.head.append(script);
-  }
   const coverInput=document.querySelector('input[name="cover_file"]');
   coverInput?.addEventListener('change', () => {
     const file=coverInput.files?.[0]; if (!file || !file.type.startsWith('image/')) return;
