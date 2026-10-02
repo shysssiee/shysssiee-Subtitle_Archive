@@ -41,9 +41,9 @@
     }
     function paintSuggestions() {
       suggestions.replaceChildren();
-      const groups = [...(groupSelect?.querySelectorAll('input:checked') || [])].map(x => +x.value);
+      const group = +(groupSelect?.value || 0);
       const needle = input.value.trim().toLocaleLowerCase();
-      catalog.filter(x => groups.includes(x.group) && !tags.includes(x.name) && (!needle || x.name.toLocaleLowerCase().includes(needle))).slice(0,8).forEach(x => {
+      catalog.filter(x => x.group === group && !tags.includes(x.name) && (!needle || x.name.toLocaleLowerCase().includes(needle))).slice(0,8).forEach(x => {
         const option = document.createElement('button'); option.type = 'button'; option.textContent = x.display || x.name;
         option.addEventListener('click', () => { input.value = x.name; commit(); input.focus(); });
         suggestions.append(option);
@@ -99,7 +99,6 @@
   document.querySelectorAll('.report-link').forEach(link => {
     try {
       const target = new URL(link.href, location.href);
-      if (target.origin !== location.origin) return;
       target.searchParams.set('article', location.href.split('#')[0]);
       link.href = target.href;
     } catch { /* Keep the plain report link if URL parsing is unavailable. */ }
