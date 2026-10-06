@@ -25,12 +25,19 @@ header nav{gap:14px;flex-wrap:wrap}
 @media(max-width:700px){.public-page #static-list{grid-template-columns:1fr!important}.public-page #static-list .episode-row strong{min-height:0}header nav{gap:10px}.public-page .recommendations .episode-row{padding:13px;gap:12px}}
 
 /* r10: podcast rows and selectable captions */
-.public-page .podcast-list-layout #static-list{grid-template-columns:1fr!important;gap:12px}
+.public-page .podcast-list-layout #static-list{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px}
 .public-page .podcast-list-layout #static-list .episode-row{flex-direction:row;align-items:center;padding:14px;gap:16px}
 .public-page .podcast-list-layout #static-list .mini-cover{width:90px;height:90px;aspect-ratio:1;object-fit:contain;border-radius:10px;flex-shrink:0}
 .public-page .podcast-list-layout #static-list .episode-row>span:nth-child(2){padding:0;min-width:0}
 .public-page .podcast-list-layout #static-list .episode-row strong{display:block;min-height:0;font-size:16px}
 .public-page .podcast-list-layout #static-list .episode-row>span:last-child{display:block}
+.public-page .podcast-list-layout #static-list .episode-row{padding:12px;gap:10px}
+.public-page .podcast-list-layout #static-list .mini-cover{width:64px;height:64px}
+.public-page .podcast-list-layout #static-list .episode-row strong{font-size:14px;overflow-wrap:anywhere}
+.public-page .podcast-list-layout #static-list .episode-row .episode-date{font-size:12px;line-height:1.6}
+.public-page .podcast-list-layout #static-list .episode-row>span:last-child{display:none}
+@media(min-width:701px) and (max-width:1024px){.public-page .podcast-list-layout #static-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:700px){.public-page .podcast-list-layout #static-list{grid-template-columns:1fr!important}}
 .player-box .caption-display[hidden]{display:none!important}
 .player-box .caption-display .caption-row #live-zh,.player-box .caption-display .caption-row #live-ko{font-size:var(--caption-size,12pt)}
 .player-box .youtube-placeholder{position:relative}
