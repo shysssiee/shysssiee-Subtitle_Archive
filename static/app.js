@@ -136,23 +136,57 @@
   const anchor = document.querySelector('#player-anchor');
   const captionBox = document.querySelector('.live-caption');
   const captionSizeValue = document.querySelector('#caption-size-value');
-  const captionSizeKey = 'voice-archive-caption-size';
+  const captionSizeKey = 'voice-archive-caption-percent';
+  const sizeSlider = document.querySelector('#caption-size-slider');
+  const positionSelect = document.querySelector('#caption-position');
   const theaterButton = document.querySelector('.theater-toggle');
   const theaterClose = document.querySelector('.theater-close');
-  let captionSize = 12;
+  const captionDisplay = document.createElement('div');
+  captionDisplay.className = 'caption-display';
+  const captionOverlay = document.createElement('div');
+  captionOverlay.className = 'caption-overlay';
+  captionBox?.querySelectorAll('.caption-row').forEach(row => captionDisplay.append(row));
+  captionBox?.prepend(captionDisplay);
+  holder?.append(captionOverlay);
+  let captionSize = 20;
   try {
-    const saved = Number(localStorage.getItem(captionSizeKey));
-    if (Number.isInteger(saved) && saved >= 12 && saved <= 16) captionSize = saved;
-  } catch { /* Private browsing. */ }
+    const saved = localStorage.getItem(captionSizeKey);
+    if (saved !== null && Number.isFinite(Number(saved))) captionSize = Number(saved);
+    else {
+      const legacy = Number(localStorage.getItem('voice-archive-caption-size'));
+      if (legacy >= 12 && legacy <= 16) captionSize = Math.round((legacy - 8) / 20 * 100);
+    }
+  } catch { /* Storage may be unavailable. */ }
   function setCaptionSize(size) {
-    captionSize = Math.max(12, Math.min(16, size));
-    captionBox?.style.setProperty('--caption-size', `${captionSize}pt`);
-    if (captionSizeValue) captionSizeValue.textContent = `${captionSize}pt`;
-    document.querySelectorAll('[data-caption-size]').forEach(button => {
-      button.disabled = button.dataset.captionSize === '-1' ? captionSize === 12 : captionSize === 16;
-    });
-    try { localStorage.setItem(captionSizeKey, String(captionSize)); } catch { /* Private browsing. */ }
+    captionSize = Math.round(Math.max(0, Math.min(100, Number(size) || 0)));
+    box?.style.setProperty('--caption-size', `${8 + captionSize * .2}pt`);
+    captionDisplay.hidden = captionSize === 0;
+    if (captionSizeValue) captionSizeValue.textContent = `${captionSize}%`;
+    if (sizeSlider) sizeSlider.value = String(captionSize);
+    try { localStorage.setItem(captionSizeKey, String(captionSize)); } catch { /* Storage may be unavailable. */ }
   }
+  function setCaptionPosition(value) {
+    const mode = value === 'overlay' ? 'overlay' : 'below';
+    (mode === 'overlay' ? captionOverlay : captionBox)?.prepend(captionDisplay);
+    box?.setAttribute('data-caption-position', mode);
+    if (positionSelect) positionSelect.value = mode;
+    try { localStorage.setItem('voice-archive-caption-position', mode); } catch { /* Storage may be unavailable. */ }
+  }
+  let captionPosition = 'below';
+  try { captionPosition = localStorage.getItem('voice-archive-caption-position') || 'below'; } catch { /* Storage may be unavailable. */ }
+  setCaptionPosition(captionPosition);
+  positionSelect?.addEventListener('change', () => setCaptionPosition(positionSelect.value));
+  sizeSlider?.addEventListener('input', () => setCaptionSize(sizeSlider.value));
+  document.querySelector('#player-fullscreen')?.addEventListener('click', async () => {
+    if (!box) return;
+    if (document.fullscreenElement) { await document.exitFullscreen(); return; }
+    setTheater(false);
+    box.classList.remove('floating-player');
+    document.body.classList.remove('has-floating-player');
+    if (anchor) anchor.style.minHeight = '';
+    try { await box.requestFullscreen(); }
+    catch { setTheater(true); }
+  });
   if (captionBox) {
     setCaptionSize(captionSize);
     captionBox.querySelectorAll('[data-caption-size]').forEach(button => button.addEventListener('click', () => setCaptionSize(captionSize + Number(button.dataset.captionSize))));
@@ -160,6 +194,7 @@
     function setLanguage(value) {
       const lang = ['zh','ko','both'].includes(value) ? value : 'zh';
       captionBox.dataset.language = lang;
+      captionOverlay.dataset.language = lang;
       captionBox.querySelectorAll('[data-caption-lang]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.captionLang === lang)));
       try { localStorage.setItem(langKey, lang); } catch { /* Private browsing. */ }
     }
@@ -202,7 +237,7 @@
 
   function dock() {
     if (!box || !anchor) return;
-    const float = ready && playing && !box.classList.contains('theater-player') && anchor.getBoundingClientRect().bottom < 0;
+    const float = ready && playing && !document.fullscreenElement && !box.classList.contains('theater-player') && anchor.getBoundingClientRect().bottom < 0;
     if (float && !box.classList.contains('floating-player')) {
       anchor.style.minHeight = `${box.offsetHeight}px`;
       box.classList.add('floating-player');
