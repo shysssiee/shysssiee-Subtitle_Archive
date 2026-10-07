@@ -6,7 +6,7 @@
     '團體專欄':['그룹별 모아보기','Browse by group'], '全部':['전체','All'],
     '搜尋':['검색','Search'], '搜尋影音紀錄':['영상 검색','Search videos'],
     '搜尋影音紀錄、成員或關鍵字':['영상, 멤버 또는 키워드 검색','Search videos, members or keywords'],
-    '最近更新':['최근 업데이트','Latest updates'], '隨機推薦':['랜덤 추천','Discover'],
+    '最新更新文章':['최근 게시글','Latest articles'], '全部文章':['전체 게시글','All articles'], '最近更新':['최근 업데이트','Latest updates'], '隨機推薦':['랜덤 추천','Discover'],
     '換一批':['다시 추천','Shuffle'], '內容日期':['콘텐츠 날짜','Content date'],
     '最新優先':['최신순','Newest first'], '最舊優先':['오래된순','Oldest first'],
     '← 上一頁':['← 이전','← Previous'], '下一頁 →':['다음 →','Next →'],
@@ -50,7 +50,7 @@
     '分享到 Threads':['Threads에 공유','Share to Threads'], '分享到 Facebook':['Facebook에 공유','Share to Facebook'],
     '分享到 LINE':['LINE에 공유','Share to LINE'], '分享到 X':['X에 공유','Share to X']
   };
-  const prefixes = {'發布日期':['게시일','Published'], '直播日期':['라이브 날짜','Live date'], '分類':['분류','Category']};
+  const prefixes = {'文章發布':['게시글 게시일','Article published'], '發布日期':['게시일','Published'], '直播日期':['라이브 날짜','Live date'], '分類':['분류','Category']};
   let language='zh-Hant';
   try { const saved=localStorage.getItem('archive-ui-language'); if (['zh-Hant','ko','en'].includes(saved)) language=saved; } catch {}
   const originals=new WeakMap(), attributes=new WeakMap();

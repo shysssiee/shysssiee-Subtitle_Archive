@@ -2,6 +2,7 @@
   const list = document.querySelector('#static-list');
   if (!list) return;
   const cards = [...list.querySelectorAll('.episode-row')];
+  const recent = document.querySelector('#recent-list');
   const empty = document.querySelector('#static-empty');
   const query = document.querySelector('#static-query');
   const sort = document.querySelector('#date-sort');
@@ -46,6 +47,16 @@
     memberButtons.forEach(button => button.classList.toggle('selected', button.dataset.member === member));
     const term = (query?.value || '').trim().toLocaleLowerCase();
     const filtered = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)) && (!term || card.dataset.search.includes(term)));
+    if (recent) {
+      const latest = filtered.slice().sort((a,b) => (b.dataset.published || '').localeCompare(a.dataset.published || ''));
+      recent.replaceChildren(...latest.slice(0,4).map(card => {
+        const clone=card.cloneNode(true);clone.hidden=false;
+        const date=clone.querySelector('.episode-date');
+        if(date)date.textContent='文章發布：'+(card.dataset.published ? new Date(card.dataset.published).toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}) : '');
+        return clone;
+      }));
+      if(!latest.length){const message=document.createElement('p');message.className='empty';message.textContent='目前沒有符合的影音紀錄。';recent.append(message);}
+    }
     filtered.sort((a,b) => {
       if (!a.dataset.date || !b.dataset.date) return a.dataset.date ? -1 : b.dataset.date ? 1 : 0;
       return a.dataset.date.localeCompare(b.dataset.date) * (sort?.value === 'asc' ? 1 : -1);

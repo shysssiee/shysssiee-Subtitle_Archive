@@ -92,3 +92,7 @@ header nav{gap:14px;flex-wrap:wrap}
 .cover-select-item{padding:6px;border:1px solid #ddd5e7;border-radius:9px;background:var(--bg);cursor:pointer}.cover-select-item img{width:100%;height:auto;display:block;object-fit:contain}
 .cover-select-item[aria-pressed=true]{border-color:var(--secondary);box-shadow:0 0 0 2px var(--secondary)}
 .cover-select-item[hidden]{display:none!important}
+
+.cover-upload-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.form .cover-upload-row input[type=file]{width:260px;max-width:100%;flex:0 1 260px;min-width:0}
+.form .cover-upload-row button{width:auto;flex:0 0 auto;margin:0}
