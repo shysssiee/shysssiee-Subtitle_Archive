@@ -104,6 +104,64 @@
     } catch { /* Keep the plain report link if URL parsing is unavailable. */ }
   });
   const coverInput=document.querySelector('input[name="cover_file"]');
+  const coverDialog=document.querySelector('#article-cover-dialog');
+  const sharedCoverId=document.querySelector('#selected-cover-id');
+  const coverPreview=document.querySelector('#current-cover-preview');
+  const coverEmpty=document.querySelector('#current-cover-empty');
+  const removeCover=document.querySelector('#remove-article-cover');
+  const coverStatus=document.querySelector('#cover-upload-status');
+  const coverItems=[...document.querySelectorAll('.cover-select-item')];
+  let coverPage=1, previewUrl=null, coverBeforeRemoval=null;
+  function renderCoverPage() {
+    const total=Math.max(1,Math.ceil(coverItems.length/20));
+    coverPage=Math.max(1,Math.min(total,coverPage));
+    coverItems.forEach((item,index)=>{ item.hidden=index<(coverPage-1)*20 || index>=coverPage*20; });
+    const pageText=document.querySelector('#cover-picker-page');
+    if(pageText) pageText.textContent=`第 ${coverPage} / ${total} 頁`;
+    const prev=document.querySelector('#cover-picker-prev'),next=document.querySelector('#cover-picker-next');
+    if(prev)prev.disabled=coverPage===1;
+    if(next)next.disabled=coverPage===total;
+  }
+  function previewCover(src) {
+    if(coverPreview){if(src)coverPreview.src=src;else coverPreview.removeAttribute('src');coverPreview.hidden=!src;}
+    if(coverEmpty)coverEmpty.hidden=!!src;
+  }
+  document.querySelector('#cover-picker-open')?.addEventListener('click',()=>{
+    const selected=coverItems.findIndex(item=>item.dataset.coverId===sharedCoverId?.value);
+    coverPage=selected<0?1:Math.floor(selected/20)+1;
+    renderCoverPage();coverDialog?.showModal();
+  });
+  document.querySelector('#cover-picker-close')?.addEventListener('click',()=>coverDialog?.close());
+  coverDialog?.addEventListener('click',event=>{if(event.target===coverDialog){const rect=coverDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)coverDialog.close();}});
+  document.querySelector('#cover-picker-prev')?.addEventListener('click',()=>{coverPage--;renderCoverPage();document.querySelector('.cover-dialog-scroll')?.scrollTo(0,0);});
+  document.querySelector('#cover-picker-next')?.addEventListener('click',()=>{coverPage++;renderCoverPage();document.querySelector('.cover-dialog-scroll')?.scrollTo(0,0);});
+  coverItems.forEach(item=>item.addEventListener('click',()=>{
+    if(sharedCoverId)sharedCoverId.value=item.dataset.coverId;
+    if(coverInput)coverInput.value='';
+    if(removeCover)removeCover.checked=false;
+    if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null;}
+    if(coverStatus)coverStatus.textContent='已選擇共用封面；儲存文章後生效。';
+    coverItems.forEach(choice=>choice.setAttribute('aria-pressed',String(choice===item)));
+    previewCover(item.dataset.coverSrc);coverDialog?.close();
+  }));
+  document.querySelector('#upload-cover-open')?.addEventListener('click',()=>coverInput?.click());
+  coverInput?.addEventListener('change',()=>{
+    const file=coverInput.files?.[0];if(!file)return;
+    if(sharedCoverId)sharedCoverId.value='';
+    if(removeCover)removeCover.checked=false;
+    if(previewUrl)URL.revokeObjectURL(previewUrl);
+    previewUrl=URL.createObjectURL(file);previewCover(previewUrl);
+    if(coverStatus)coverStatus.textContent='已選擇新封面；儲存文章後生效。';
+    coverItems.forEach(choice=>choice.setAttribute('aria-pressed','false'));
+  });
+  removeCover?.addEventListener('change',()=>{
+    if(removeCover.checked){
+      coverBeforeRemoval={src:coverPreview?.getAttribute('src')||'',status:coverStatus?.textContent||''};
+      previewCover('');if(coverStatus)coverStatus.textContent='儲存文章後移除封面。';
+    }else if(coverBeforeRemoval){previewCover(coverBeforeRemoval.src);if(coverStatus)coverStatus.textContent=coverBeforeRemoval.status;}
+  });
+  renderCoverPage();
+
   coverInput?.addEventListener('change', () => {
     const file=coverInput.files?.[0]; if (!file || !file.type.startsWith('image/')) return;
     const image=new Image(); const url=URL.createObjectURL(file);
@@ -114,7 +172,7 @@
       canvas.width=Math.max(1,Math.round(image.width*scale)); canvas.height=Math.max(1,Math.round(image.height*scale));
       canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
       canvas.toBlob(blob => {
-        if (!blob) return; const transfer=new DataTransfer();
+        if (!blob || coverInput.files?.[0] !== file) return; const transfer=new DataTransfer();
         transfer.items.add(new File([blob],file.name.replace(/\.[^.]+$/,'.webp'),{type:'image/webp'})); coverInput.files=transfer.files;
       },'image/webp',.82);
     };
