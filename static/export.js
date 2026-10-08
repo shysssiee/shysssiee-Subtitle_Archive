@@ -30,6 +30,7 @@
   }
   renderPodcastMembers();
   function shuffle() {
+    stopEntrance();
     if (!recommended) return;
     const pool = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)));
     const choices = (pool.length > 2 ? pool.slice(1) : pool).slice();
@@ -42,7 +43,9 @@
     }));
     recommendations.hidden = choices.length === 0;
   }
+  let stopEntrance=()=>{};
   function filter() {
+    stopEntrance();
     buttons.forEach(button => button.classList.toggle('selected', button.dataset.filter === group));
     memberButtons.forEach(button => button.classList.toggle('selected', button.dataset.member === member));
     const term = (query?.value || '').trim().toLocaleLowerCase();
@@ -98,4 +101,24 @@
   document.querySelector('#static-search')?.addEventListener('submit', event => { event.preventDefault(); page = 1; filter(); });
   document.querySelector('#shuffle-recommend')?.addEventListener('click', shuffle);
   filter(); shuffle();
+  // Observe only content initially below the viewport. No hidden content without JS.
+  const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  if(!motion.matches && 'IntersectionObserver' in window){
+    const scope=document.querySelector('.home-layout');
+    const targets=scope ? [...scope.querySelectorAll('.section-heading,.episode-row')].filter(el=>!el.hidden&&el.getBoundingClientRect().top>=window.innerHeight) : [];
+    const observer=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(!entry.isIntersecting)return;
+        entry.target.classList.add('scroll-enter');observer.unobserve(entry.target);
+      });
+    },{threshold:0.05});
+    targets.forEach(el=>{
+      const siblings=[...el.parentElement.children].filter(child=>!child.hidden);
+      el.style.setProperty('--enter-delay',`${el.matches('.episode-row') ? siblings.indexOf(el)%4*45 : 0}ms`);
+      el.addEventListener('animationend',()=>el.classList.remove('scroll-enter'),{once:true});observer.observe(el);
+    });
+    stopEntrance=()=>{observer.disconnect();scope?.querySelectorAll('.scroll-enter').forEach(el=>el.classList.remove('scroll-enter'));};
+    motion.addEventListener('change',event=>{if(event.matches)stopEntrance();});
+    scope?.addEventListener('focusin',event=>{observer.unobserve(event.target);event.target.classList.remove('scroll-enter');});
+  }
 })();

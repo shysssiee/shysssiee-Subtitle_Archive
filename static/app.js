@@ -461,3 +461,34 @@
     }));
   }
 })();
+
+// r16: keep sorting separate from member editing forms.
+(() => {
+  const form=document.querySelector('#group-order-form'),list=document.querySelector('#group-order-list');
+  if(!form||!list)return;
+  let dragging=null;
+  function sync(changed=false){
+    const rows=[...list.children];form.elements.order.value=rows.map(row=>row.dataset.groupOrderId).join(',');
+    rows.forEach((row,i)=>{row.querySelector('[data-order-up]').disabled=i===0;row.querySelector('[data-order-down]').disabled=i===rows.length-1;});
+    if(changed)document.querySelector('#group-order-status').textContent='順序已調整，請按「儲存排序」。';
+  }
+  list.addEventListener('click',event=>{
+    const up=event.target.closest('[data-order-up]'),down=event.target.closest('[data-order-down]');if(!up&&!down)return;
+    const row=event.target.closest('li');
+    if(up&&row.previousElementSibling)list.insertBefore(row,row.previousElementSibling);
+    if(down&&row.nextElementSibling)list.insertBefore(row.nextElementSibling,row);
+    sync(true);
+  });
+  list.addEventListener('dragstart',event=>{
+    if(!event.target.closest('.group-drag-handle')){event.preventDefault();return;}
+    dragging=event.target.closest('li');event.dataTransfer.setData('text/plain',dragging.dataset.groupOrderId);event.dataTransfer.effectAllowed='move';dragging.classList.add('dragging');
+  });
+  list.addEventListener('dragover',event=>{
+    if(!dragging)return;event.preventDefault();event.dataTransfer.dropEffect='move';
+    const row=event.target.closest('li');if(!row||row===dragging)return;
+    const box=row.getBoundingClientRect();list.insertBefore(dragging,event.clientY<box.top+box.height/2?row:row.nextSibling);sync(true);
+  });
+  list.addEventListener('drop',event=>{if(dragging){event.preventDefault();sync(true);}});
+  list.addEventListener('dragend',()=>{dragging?.classList.remove('dragging');dragging=null;});
+  form.addEventListener('submit',()=>sync());sync();
+})();
