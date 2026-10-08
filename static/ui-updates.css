@@ -108,3 +108,15 @@ header nav{gap:14px;flex-wrap:wrap}
 .public-page .scroll-enter{animation:gentle-enter .42s ease-out var(--enter-delay,0ms) both}
 @media(max-width:700px){@keyframes gentle-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}}
 @media(prefers-reduced-motion:reduce){.public-page .scroll-enter{animation:none!important}}
+
+/* r16 motion: only public pages; keep menus and player controls reachable. */
+.public-page .motion-header{position:sticky;top:0;z-index:40;background:var(--bg);transition:transform .25s ease;isolation:isolate}
+.public-page .motion-header.header-away{transform:translateY(-100%)}
+.public-page .motion-header:focus-within,.public-page .motion-header:has(details[open]){transform:none}
+[data-theme=dark] .public-page .motion-header{background:#1d1f2c}
+.public-page .home-layout>.parallax-hero{position:relative;overflow:hidden;isolation:isolate;background:none!important}
+.hero-motion-art{position:absolute;inset:0;z-index:-1;pointer-events:none;will-change:transform}
+.public-page .home-layout>.podcast-hero{overflow:hidden}
+.public-page .playback-column.sticky-playback{position:sticky;top:calc(var(--public-header-height,90px) + 12px);align-self:start;z-index:2}
+.public-page :is(h1,h2,h3,[id]){scroll-margin-top:calc(var(--public-header-height,90px) + 15px)}
+@media(prefers-reduced-motion:reduce){.public-page .motion-header{transition:none}.hero-motion-art,.podcast-hero-art{transform:none!important;will-change:auto}}
