@@ -530,3 +530,16 @@
   if(box)new MutationObserver(schedule).observe(box,{attributes:true,attributeFilter:['class']});
   update();
 })();
+
+// r16 deletion controls: explicit confirmation and current-page selection.
+(() => {
+  document.querySelectorAll('[data-delete-group]').forEach(button=>button.addEventListener('click',event=>{
+    if(!confirm(`確定刪除「${button.dataset.groupName}」及其成員名單嗎？文章會保留，僅移除這個團體的關聯；沒有其他團體的文章將變成未設定團體。`)){event.preventDefault();return;}
+    button.form.elements.confirm_delete.value='1';
+  }));
+  const form=document.querySelector('#cover-delete-form');if(!form)return;
+  const checks=[...form.querySelectorAll('input[name="cover_ids"]:not(:disabled)')],all=form.querySelector('#cover-select-all'),button=form.querySelector('#cover-delete-button');
+  function sync(){const count=checks.filter(x=>x.checked).length;button.disabled=!count;button.textContent=`刪除已勾選（${count}）`;all.checked=checks.length>0&&count===checks.length;all.indeterminate=count>0&&count<checks.length;all.disabled=!checks.length;}
+  checks.forEach(x=>x.addEventListener('change',sync));all.addEventListener('change',()=>{checks.forEach(x=>x.checked=all.checked);sync();});
+  form.addEventListener('submit',event=>{const count=checks.filter(x=>x.checked).length;if(!count||!confirm(`確定刪除已勾選的 ${count} 張封面嗎？刪除後無法直接復原。`)){event.preventDefault();return;}form.elements.confirm_delete.value='1';});sync();
+})();
