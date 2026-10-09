@@ -152,3 +152,26 @@ header nav{gap:14px;flex-wrap:wrap}
 .player-box.theater-player .live-caption,.player-box:fullscreen .live-caption{max-height:none!important;overflow:visible;flex-shrink:0}
 @media(max-width:700px){.player-box .caption-tool{padding:4px}.player-box .caption-languages button{padding:5px 7px;font-size:12px}.player-box .caption-overlay{inset-inline:2%;bottom:max(10px,var(--overlay-height,2%))}.player-box .caption-tool .theater-toggle span{display:inline}.player-box .caption-notice{font-size:11px}}
 @media(orientation:landscape) and (max-height:550px){.player-box.theater-player .youtube-placeholder,.player-box:fullscreen .youtube-placeholder{width:min(100%,calc(66dvh * 16 / 9))}.player-box .caption-heading{gap:5px!important}.player-box .caption-tool{min-height:34px;padding:3px}.player-box .round-play{width:42px!important;height:42px!important;flex-basis:42px}.player-box .caption-overlay{bottom:max(8px,var(--overlay-height,2%))}}
+/* Unified playback panel: the video and controls share one responsive width. */
+.player-box{--stage-width:100%}
+.player-box.theater-player,.player-box:fullscreen{--stage-width:min(100%,calc(68dvh * 16 / 9),1280px)}
+.player-box .player-control-panel{box-sizing:border-box;width:var(--stage-width);margin:0 auto;padding:12px 16px;background:#f5f0fb;border:1px solid #dcd3ed;border-top:0;border-radius:0 0 14px 14px;flex:0 0 auto;color:var(--ink)}
+.player-box .player-control-panel .listening-controls{width:100%;margin:0!important;padding:0 0 10px;gap:7px;background:transparent}
+.player-box .player-control-panel .transport{display:grid;grid-template-columns:1fr 40px 52px 40px 1fr;gap:10px;width:100%;min-height:52px}
+.player-control-panel #seek-back{grid-column:2}.player-control-panel #play-toggle{grid-column:3}.player-control-panel #seek-forward{grid-column:4}
+.player-box .player-control-panel .speed-control{grid-column:5;justify-self:end;white-space:nowrap;color:inherit}
+.player-control-panel #seek-progress{width:100%;margin:0;accent-color:var(--secondary);height:20px}
+.player-control-panel .time-display{font-variant-numeric:tabular-nums;font-size:12px}
+.player-box .player-control-panel .live-caption{width:100%;margin:0!important;padding:10px 0 0;border:0;border-top:1px solid #dcd3ed;border-radius:0;background:transparent;max-height:none;overflow:visible}
+.player-box .player-control-panel .caption-heading{margin:0;gap:6px!important;justify-content:center}
+.player-box .player-control-panel .caption-tool{border:0;background:transparent;padding:3px;min-height:36px}
+.player-box .player-control-panel .caption-tool button{min-height:34px}
+.player-box .player-control-panel .caption-appearance{margin:0}
+.player-box .player-control-panel .caption-appearance summary{padding:6px 3px}
+.player-box .caption-notice{box-sizing:border-box;width:var(--stage-width);margin:12px auto}
+.player-box.theater-player .youtube-placeholder,.player-box:fullscreen .youtube-placeholder{width:var(--stage-width)}
+[data-theme=dark] .player-box .player-control-panel{background:#2c293e;border-color:#59516c}
+[data-theme=dark] .player-box .player-control-panel .live-caption{border-color:#59516c}
+.podcast-theme .player-control-panel{background:#fffef8;border-color:#eaddb8}
+@media(max-width:480px){.player-box .player-control-panel{padding:10px}.player-box .player-control-panel .transport{grid-template-columns:1fr 32px 52px 32px 1fr;gap:5px}.player-box .player-control-panel .speed-control{font-size:11px;gap:2px;flex-wrap:wrap;justify-content:flex-end}.player-control-panel .speed-control select{max-width:63px}.player-box .player-control-panel .caption-heading{gap:3px!important}}
+@media(orientation:landscape) and (max-height:550px){.player-box.theater-player,.player-box:fullscreen{--stage-width:min(100%,calc(66dvh * 16 / 9))}.player-box .player-control-panel .transport{grid-template-columns:1fr 36px 42px 36px 1fr;min-height:42px}}
