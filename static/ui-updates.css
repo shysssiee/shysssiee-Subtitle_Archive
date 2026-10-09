@@ -152,6 +152,7 @@ header nav{gap:14px;flex-wrap:wrap}
 .player-box.theater-player .live-caption,.player-box:fullscreen .live-caption{max-height:none!important;overflow:visible;flex-shrink:0}
 @media(max-width:700px){.player-box .caption-tool{padding:4px}.player-box .caption-languages button{padding:5px 7px;font-size:12px}.player-box .caption-overlay{inset-inline:2%;bottom:max(10px,var(--overlay-height,2%))}.player-box .caption-tool .theater-toggle span{display:inline}.player-box .caption-notice{font-size:11px}}
 @media(orientation:landscape) and (max-height:550px){.player-box.theater-player .youtube-placeholder,.player-box:fullscreen .youtube-placeholder{width:min(100%,calc(66dvh * 16 / 9))}.player-box .caption-heading{gap:5px!important}.player-box .caption-tool{min-height:34px;padding:3px}.player-box .round-play{width:42px!important;height:42px!important;flex-basis:42px}.player-box .caption-overlay{bottom:max(8px,var(--overlay-height,2%))}}
+
 /* Unified playback panel: the video and controls share one responsive width. */
 .player-box{--stage-width:100%}
 .player-box.theater-player,.player-box:fullscreen{--stage-width:min(100%,calc(68dvh * 16 / 9),1280px)}
@@ -175,3 +176,19 @@ header nav{gap:14px;flex-wrap:wrap}
 .podcast-theme .player-control-panel{background:#fffef8;border-color:#eaddb8}
 @media(max-width:480px){.player-box .player-control-panel{padding:10px}.player-box .player-control-panel .transport{grid-template-columns:1fr 32px 52px 32px 1fr;gap:5px}.player-box .player-control-panel .speed-control{font-size:11px;gap:2px;flex-wrap:wrap;justify-content:flex-end}.player-control-panel .speed-control select{max-width:63px}.player-box .player-control-panel .caption-heading{gap:3px!important}}
 @media(orientation:landscape) and (max-height:550px){.player-box.theater-player,.player-box:fullscreen{--stage-width:min(100%,calc(66dvh * 16 / 9))}.player-box .player-control-panel .transport{grid-template-columns:1fr 36px 42px 36px 1fr;min-height:42px}}
+/* Shared desktop/mobile control sizing; view modes always stay together. */
+.player-control-panel{container-type:inline-size}
+.player-box .player-control-panel .caption-heading{display:grid!important;grid-template-columns:132px minmax(145px,1fr) 142px 168px!important;gap:6px!important;align-items:stretch}
+.player-box .player-control-panel .caption-tool{box-sizing:border-box;height:44px;min-height:44px;padding:3px;border:1px solid #e3dced;border-radius:10px;background:var(--bg);margin:0}
+.player-box .player-control-panel .caption-tool :is(button,label,select,output,.caption-size){font-family:inherit;font-size:13px!important;font-weight:500;line-height:1.2}
+.player-box .player-control-panel .caption-tool button{height:36px;min-height:36px;border-radius:7px;padding:0 7px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:4px;margin:0;border:0}
+.player-box .player-control-panel .caption-tool label{flex-wrap:nowrap;white-space:nowrap;gap:4px;margin:0}
+.player-box .player-control-panel .caption-tool select{appearance:none;-webkit-appearance:none;background:transparent;border:0;border-radius:7px;padding:4px 16px 4px 4px;height:36px;min-height:36px;max-width:100%;color:inherit;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 8px) 16px,calc(100% - 4px) 16px;background-size:4px 4px;background-repeat:no-repeat}
+.player-box .player-control-panel .caption-size{width:100%;gap:4px}
+.player-box .player-control-panel .caption-size input[type=range]{width:100%;flex:1;min-width:24px;height:28px;margin:0}
+.player-box .player-control-panel .caption-size output{min-width:30px}
+.player-box .player-control-panel .caption-view-modes{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.player-box .player-control-panel .caption-view-modes button{width:100%;background:transparent;color:var(--ink)}
+.player-box .player-control-panel .caption-view-modes svg{width:14px;height:14px;flex:none}
+@container(max-width:620px){.player-box .player-control-panel .caption-heading{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)!important}.player-box .player-control-panel .caption-tool{width:100%}}
+[data-theme=dark] .player-box .player-control-panel .caption-tool{border-color:#59516c}
