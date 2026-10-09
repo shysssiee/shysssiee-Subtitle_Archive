@@ -192,3 +192,16 @@ header nav{gap:14px;flex-wrap:wrap}
 .player-box .player-control-panel .caption-view-modes svg{width:14px;height:14px;flex:none}
 @container(max-width:620px){.player-box .player-control-panel .caption-heading{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)!important}.player-box .player-control-panel .caption-tool{width:100%}}
 [data-theme=dark] .player-box .player-control-panel .caption-tool{border-color:#59516c}
+/* Desktop cinema: reserve a compact controls area and give the video the rest. */
+@media(min-width:701px) and (hover:hover) and (pointer:fine){
+ .player-box.theater-player,.player-box:fullscreen{--stage-width:min(100%,1280px,calc(max(240px,100dvh - 240px) * 16 / 9))}
+ .player-box .player-control-panel{padding:8px 12px}
+ .player-box .player-control-panel .listening-controls{gap:3px;padding-bottom:6px}
+ .player-box .player-control-panel .transport{grid-template-columns:1fr 34px 44px 34px 1fr;min-height:44px;gap:8px}
+ .player-box .player-control-panel .round-play{width:44px!important;height:44px!important;flex-basis:44px}
+ .player-box .player-control-panel #seek-progress{height:14px}
+ .player-box .player-control-panel .live-caption{padding-top:6px;gap:3px}
+ .player-box .player-control-panel .caption-appearance summary{padding:3px}
+ .player-box .caption-notice{padding:10px 14px;margin:8px auto;font-size:11px}
+}
+@media(min-width:701px) and (hover:hover) and (pointer:fine){.player-box .player-control-panel .caption-heading{width:min(100%,760px)!important;align-self:center}}
