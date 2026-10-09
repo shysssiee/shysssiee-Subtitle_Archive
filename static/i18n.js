@@ -6,7 +6,7 @@
     '團體專欄':['그룹별 모아보기','Browse by group'], '全部':['전체','All'],
     '搜尋':['검색','Search'], '搜尋影音紀錄':['영상 검색','Search videos'],
     '搜尋影音紀錄、成員或關鍵字':['영상, 멤버 또는 키워드 검색','Search videos, members or keywords'],
-    '最新更新文章':['최근 게시글','Latest articles'], '全部文章':['전체 게시글','All articles'], '最近更新':['최근 업데이트','Latest updates'], '隨機推薦':['랜덤 추천','Discover'],
+    '最新更新文章':['최근 게시글','Latest articles'], '全部文章':['전체 게시글','All articles'], '字幕外觀':['자막 모양','Subtitle appearance'], '字幕樣式':['자막 스타일','Subtitle style'], '底色透明度':['배경 투명도','Background transparency'], '字幕高度':['자막 높이','Subtitle height'], '白字／黑底':['흰 글자 / 검은 배경','White on black'], '黑字／白底':['검은 글자 / 흰 배경','Black on white'], '黃字／黑底':['노란 글자 / 검은 배경','Yellow on black'], '白字描邊／無底':['흰색 외곽선 / 배경 없음','Outlined white / no background'], '恢復預設':['기본값 복원','Reset defaults'], '最近更新':['최근 업데이트','Latest updates'], '隨機推薦':['랜덤 추천','Discover'],
     '換一批':['다시 추천','Shuffle'], '內容日期':['콘텐츠 날짜','Content date'],
     '最新優先':['최신순','Newest first'], '最舊優先':['오래된순','Oldest first'],
     '← 上一頁':['← 이전','← Previous'], '下一頁 →':['다음 →','Next →'],

@@ -3,6 +3,8 @@
   if (!list) return;
   const cards = [...list.querySelectorAll('.episode-row')];
   const recent = document.querySelector('#recent-list');
+  const poolTemplate=document.querySelector('#home-pool');
+  const poolCards=poolTemplate ? [...poolTemplate.content.querySelectorAll('.episode-row')] : cards;
   const empty = document.querySelector('#static-empty');
   const query = document.querySelector('#static-query');
   const sort = document.querySelector('#date-sort');
@@ -32,8 +34,8 @@
   function shuffle() {
     stopEntrance();
     if (!recommended) return;
-    const pool = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)));
-    const choices = (pool.length > 2 ? pool.slice(1) : pool).slice();
+    const pool = poolCards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)));
+    const choices = pool.slice();
     for (let i = choices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [choices[i], choices[j]] = [choices[j], choices[i]];
@@ -51,7 +53,7 @@
     const term = (query?.value || '').trim().toLocaleLowerCase();
     const filtered = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)) && (!term || card.dataset.search.includes(term)));
     if (recent) {
-      const latest = filtered.slice().sort((a,b) => (b.dataset.published || '').localeCompare(a.dataset.published || ''));
+      const latest = poolCards.filter(card=>(!group||(card.dataset.groups||card.dataset.group||'').split(',').includes(group))&&(!member||(card.dataset.member||'').split(',').map(x=>x.trim()).includes(member))&&(!term||card.dataset.search.includes(term))).sort((a,b) => (b.dataset.published || '').localeCompare(a.dataset.published || ''));
       recent.replaceChildren(...latest.slice(0,4).map(card => {
         const clone=card.cloneNode(true);clone.hidden=false;
         const date=clone.querySelector('.episode-date');

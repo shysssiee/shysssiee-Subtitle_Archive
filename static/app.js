@@ -230,6 +230,23 @@
     if (positionSelect) positionSelect.value = mode;
     try { localStorage.setItem('voice-archive-caption-position', mode); } catch { /* Storage may be unavailable. */ }
   }
+  const appearance={preset:document.querySelector('#caption-preset'),opacity:document.querySelector('#caption-opacity'),height:document.querySelector('#caption-height')};
+  const defaults={preset:'white-black',opacity:'25',height:'2'};
+  function paintAppearance(){
+    const preset=appearance.preset?.value||defaults.preset;
+    const transparency=Math.max(0,Math.min(100,Number(appearance.opacity?.value)||0));
+    const height=Math.max(0,Math.min(30,Number(appearance.height?.value)||0));
+    box?.style.setProperty('--overlay-ink',preset==='black-white'?'#111':preset==='yellow-black'?'#ffe66b':'#fff');
+    box?.style.setProperty('--overlay-bg',preset==='outline'?'transparent':`rgba(${preset==='black-white'?'255,255,255':'0,0,0'},${1-transparency/100})`);
+    box?.style.setProperty('--overlay-shadow',preset==='black-white'?'none':'0 1px 2px #000,1px 0 1px #000,-1px 0 1px #000,0 -1px 1px #000');
+    box?.style.setProperty('--overlay-height',height+'%');
+    if(appearance.opacity)document.querySelector('#caption-opacity-value').textContent=transparency+'%';
+    if(appearance.height)document.querySelector('#caption-height-value').textContent=height+'%';
+    Object.entries(appearance).forEach(([key,input])=>{if(input)try{localStorage.setItem('voice-caption-'+key,input.value);}catch{}});
+  }
+  Object.entries(appearance).forEach(([key,input])=>{if(!input)return;try{const saved=localStorage.getItem('voice-caption-'+key);if(saved!==null)input.value=saved;}catch{}if(!input.value)input.value=defaults[key];input.addEventListener('input',paintAppearance);});
+  document.querySelector('#caption-appearance-reset')?.addEventListener('click',()=>{Object.entries(appearance).forEach(([key,input])=>{if(input)input.value=defaults[key];});paintAppearance();});
+  paintAppearance();
   let captionPosition = 'below';
   try { captionPosition = localStorage.getItem('voice-archive-caption-position') || 'below'; } catch { /* Storage may be unavailable. */ }
   setCaptionPosition(captionPosition);
