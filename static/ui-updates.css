@@ -205,3 +205,6 @@ header nav{gap:14px;flex-wrap:wrap}
  .player-box .caption-notice{padding:10px 14px;margin:8px auto;font-size:11px}
 }
 @media(min-width:701px) and (hover:hover) and (pointer:fine){.player-box .player-control-panel .caption-heading{width:min(100%,760px)!important;align-self:center}}
+
+/* Article publication and last-save timestamps remain adjacent. */
+@media(min-width:1101px){.article-admin-table .admin-table-head,.article-admin-table .admin-table-row{grid-template-columns:minmax(140px,1.6fr) minmax(108px,1fr) minmax(108px,1fr) minmax(110px,1fr) minmax(70px,.8fr) 44px 112px;gap:8px}}
