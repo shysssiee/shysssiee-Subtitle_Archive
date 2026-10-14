@@ -48,7 +48,7 @@
   let stopEntrance=()=>{};
   function filter() {
     stopEntrance();
-    buttons.forEach(button => button.classList.toggle('selected', button.dataset.filter === group));
+    buttons.forEach(button => {button.classList.toggle('selected', button.dataset.filter === group);button.setAttribute('aria-pressed',String(button.dataset.filter===group));});
     memberButtons.forEach(button => button.classList.toggle('selected', button.dataset.member === member));
     const term = (query?.value || '').trim().toLocaleLowerCase();
     const filtered = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)) && (!term || card.dataset.search.includes(term)));
@@ -69,6 +69,7 @@
     cards.forEach(card => { card.hidden = true; });
     filtered.forEach((card, index) => { list.append(card); card.hidden = index < (page-1)*pageSize || index >= page*pageSize; });
     empty.hidden = filtered.length > 0;
+    window.dispatchEvent(new CustomEvent("archive:filter",{detail:{count:filtered.length}}));
     const total = Math.max(1, Math.ceil(filtered.length/pageSize));
     pager.replaceChildren();
     if (total > 1) {
