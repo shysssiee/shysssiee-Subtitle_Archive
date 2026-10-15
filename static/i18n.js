@@ -1,6 +1,19 @@
 (() => {
   if (!document.body.classList.contains('public-page') || window.archiveI18n) return;
   const words = {
+    '文章互動':['게시물 반응','Article reactions'], '文章瀏覽次數':['게시물 조회수','Article views'],
+    '喜歡這篇文章':['이 게시물 좋아요','Like this article'], '字幕評分':['자막 평가','Subtitle rating'],
+    '這篇字幕對你有幫助嗎？':['이 자막이 도움이 되었나요?','Were these subtitles helpful?'],
+    '人喜歡這篇':['명이 좋아합니다','people like this'],
+    '需要改進':['개선이 필요해요','Needs improvement'], '尚可':['보통이에요','Fair'], '不錯':['좋아요','Good'],
+    '很有幫助':['도움이 돼요','Helpful'], '非常有幫助':['매우 도움이 돼요','Very helpful'],
+    '尚無評分，歡迎分享你的感受':['아직 평가가 없습니다. 의견을 남겨 주세요.','No ratings yet. Share your thoughts.'],
+    '追蹤字幕更新':['자막 업데이트 팔로우','Follow subtitle updates'],
+    '追蹤 Threads，查看文章與字幕更新消息。':['새 게시물과 자막 수정 소식을 Threads에서 확인하세요.','Find new articles and subtitle corrections on Threads.'],
+    '到 Threads 追蹤 ↗':['Threads에서 팔로우 ↗','Follow on Threads ↗'],
+    '已按讚':['좋아요를 눌렀습니다','Liked'], '已取消按讚':['좋아요를 취소했습니다','Like removed'],
+    '正在儲存…':['저장 중…','Saving…'], '統計暫時無法載入':['통계를 불러올 수 없습니다','Statistics unavailable'],
+
     '影音紀錄':['영상 기록','Video archive'], '首頁':['홈','Home'],
     '關於本站':['사이트 소개','About'], '問題回報':['문제 신고','Report an issue'],
     '團體專欄':['그룹별 모아보기','Browse by group'], '全部':['전체','All'],
