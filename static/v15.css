@@ -50,3 +50,17 @@
 @media(max-width:480px){.public-page .shell{padding-inline:16px}.public-page .recommendations .list{grid-template-columns:1fr}.public-page .recommendations .episode-row{padding:12px}.public-page .home-layout .hero{min-height:130px!important}.public-page .hero h1{font-size:22px!important}}
 @media(prefers-reduced-motion:reduce){.mobile-drawer[open]{animation:none}}
 @media(max-width:1024px),(max-width:1366px) and (pointer:coarse){.mobile-drawer-top .brand .wave{display:block!important;color:var(--secondary);font-size:26px}.mobile-drawer-top .brand small{letter-spacing:.03em}.public-page .group-columns{margin-bottom:0!important}.public-page .home-layout>main{padding-top:0}.public-page .home-layout #static-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px}.public-page .home-layout #static-list .episode-row strong{font-size:13px;min-height:0}.public-page .home-layout #static-list .episode-row>span:nth-child(2){padding:10px}.public-page .home-layout .recommendations{margin-top:4px!important}.public-page .home-layout .search{margin-bottom:0!important}}
+
+/* Lucian UX/UI Prompt #039 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#039 */
+.u039-pill{position:absolute;left:0;top:5px;bottom:5px;width:var(--w,80px);border-radius:999px;background:var(--ux-ink);transform:translateX(var(--x,5px));box-shadow:0 8px 16px -10px var(--ux-shadow-strong);transition:transform .5s var(--ux-spring),width .5s var(--ux-spring)}
+@media(max-width:1024px),(max-width:1366px) and (pointer:coarse){
+.mobile-bottom.u039-tabs{position:fixed;bottom:var(--dock-bottom,0px);border-radius:0;isolation:isolate;--ux-spring:cubic-bezier(.34,1.45,.64,1);--ux-ease:cubic-bezier(.2,.8,.2,1);--ux-ink:var(--secondary);--ux-shadow-strong:#40334a20;overflow:visible;transform:translateZ(0)}
+/* Paint through the iOS toolbar/safe-area transition so content cannot peek below the dock. */
+.mobile-bottom::after{content:'';position:absolute;top:100%;left:0;right:0;height:max(160px,env(safe-area-inset-bottom,0px));background:var(--mobile-surface);pointer-events:none}
+.mobile-bottom>.u039-pill{top:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));border-radius:16px;pointer-events:none;z-index:0}
+.mobile-bottom>a,.mobile-bottom>button{position:relative;z-index:1;transition:color .35s var(--ux-ease),transform .15s ease;background:transparent!important}
+.mobile-bottom>a:active,.mobile-bottom>button:active{transform:scale(.94)}
+.mobile-bottom [aria-current]:not(.dock-selected){color:var(--ink)}.mobile-bottom .dock-selected{color:white!important}
+[data-theme=dark] .mobile-bottom [aria-current]:not(.dock-selected){color:#e9e6f2}
+}
+@media(prefers-reduced-motion:reduce){.mobile-bottom .u039-pill,.mobile-bottom>a,.mobile-bottom>button{transition:none!important}}

@@ -1,6 +1,7 @@
 (() => {
   if (!document.body.classList.contains('public-page') || window.archiveI18n) return;
   const words = {
+    '虛擬行事曆':['버추얼 아이돌 일정','Virtual idol calendar'], '次瀏覽':['회 조회','views'],
     '文章互動':['게시물 반응','Article reactions'], '文章瀏覽次數':['게시물 조회수','Article views'],
     '喜歡這篇文章':['이 게시물 좋아요','Like this article'], '字幕評分':['자막 평가','Subtitle rating'],
     '這篇字幕對你有幫助嗎？':['이 자막이 도움이 되었나요?','Were these subtitles helpful?'],
