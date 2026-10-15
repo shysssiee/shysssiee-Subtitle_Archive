@@ -560,3 +560,25 @@
   checks.forEach(x=>x.addEventListener('change',sync));all.addEventListener('change',()=>{checks.forEach(x=>x.checked=all.checked);sync();});
   form.addEventListener('submit',event=>{const count=checks.filter(x=>x.checked).length;if(!count||!confirm(`確定刪除已勾選的 ${count} 張封面嗎？刪除後無法直接復原。`)){event.preventDefault();return;}form.elements.confirm_delete.value='1';});sync();
 })();
+
+// Existing local admin: page-only selection, explicit type move, and isolated title edits.
+(() => {
+ const table=document.querySelector('.article-admin-table');if(!table)return;
+ const boxes=[...table.querySelectorAll('input[name="episode_ids"]:not(:disabled)')],selectAll=table.querySelector('#article-select-all'),move=document.querySelector('#articles-move'),count=document.querySelector('#articles-selection-count'),dialog=document.querySelector('#articles-move-dialog'),form=document.querySelector('#articles-move-form'),status=document.querySelector('#article-batch-status');
+ const selected=()=>boxes.filter(b=>b.checked);
+ function sync(){const n=selected().length;count.textContent='已選 '+n+' 篇';move.disabled=n===0;selectAll.checked=n>0&&n===boxes.length;selectAll.indeterminate=n>0&&n<boxes.length;boxes.forEach(b=>b.closest('.admin-table-row').classList.toggle('article-selected',b.checked));}
+ boxes.forEach(b=>b.addEventListener('change',sync));selectAll?.addEventListener('change',()=>{boxes.forEach(b=>b.checked=selectAll.checked);sync();});
+ document.querySelector('#articles-select-page').addEventListener('click',()=>{boxes.forEach(b=>b.checked=true);sync();});document.querySelector('#articles-clear').addEventListener('click',()=>{boxes.forEach(b=>b.checked=false);sync();});
+ let submitted=[];
+ move.addEventListener('click',()=>{submitted=selected().map(b=>b.value);document.querySelector('#articles-move-count').textContent='已選 '+submitted.length+' 篇文章';document.querySelector('#articles-move-status').textContent='';dialog.showModal();});
+ document.querySelector('#articles-move-cancel').addEventListener('click',()=>dialog.close());
+ async function post(action,data){const response=await fetch(action,{method:'POST',body:new URLSearchParams(data),headers:{Accept:'application/json'}});if(!response.ok)throw new Error((await response.text()).slice(0,220)||'儲存失敗，請稍後再試。');return response.json();}
+ form.addEventListener('submit',async e=>{e.preventDefault();if(!submitted.length)return;const output=document.querySelector('#articles-move-status'),button=form.querySelector('[type="submit"]'),cancel=document.querySelector('#articles-move-cancel');button.disabled=cancel.disabled=true;output.textContent='正在移動…';const data=new FormData(form);submitted.forEach(id=>data.append('episode_ids',id));try{const result=await post(form.action,data);try{sessionStorage.setItem('archive-article-notice','已移動 '+result.changed+' 篇文章；字幕、封面與網址已保留。');}catch{}location.reload();}catch(err){output.textContent=err.message;}finally{button.disabled=cancel.disabled=false;}});
+ try{const notice=sessionStorage.getItem('archive-article-notice');if(notice){status.textContent=notice;sessionStorage.removeItem('archive-article-notice');}}catch{}
+ table.querySelectorAll('.quick-title-form').forEach(editor=>{
+  const cell=editor.closest('.article-title-cell'),open=cell.querySelector('.quick-title-open'),cancel=editor.querySelector('.quick-title-cancel'),input=editor.elements.title,output=editor.querySelector('.quick-title-status');let original=input.value,busy=false;
+  const close=()=>{if(busy)return;input.value=original;output.textContent='';editor.hidden=true;open.hidden=false;open.setAttribute('aria-expanded','false');open.focus();};
+  open.addEventListener('click',()=>{original=input.value;editor.hidden=false;open.hidden=true;open.setAttribute('aria-expanded','true');input.focus();});cancel.addEventListener('click',close);input.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();}});
+  editor.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;const button=editor.querySelector('[type="submit"]');button.disabled=cancel.disabled=true;output.textContent='正在儲存…';try{const result=await post(editor.action,new FormData(editor));const title=cell.querySelector('.article-title-text');title.firstChild.nodeValue=result.title;input.value=original=result.title;editor.elements.expected_updated_at.value=result.updated_at;cell.closest('.admin-table-row').querySelector('[data-label="最後編輯時間"]').textContent=result.display_date;const box=cell.closest('.admin-table-row').querySelector('input[name="episode_ids"]');box.setAttribute('aria-label','勾選 '+result.title);busy=false;close();status.textContent='標題已儲存。更新 GitHub 前請重新匯出網站。';}catch(err){output.textContent=err.message;}finally{busy=false;button.disabled=cancel.disabled=false;}});
+ });sync();
+})();
