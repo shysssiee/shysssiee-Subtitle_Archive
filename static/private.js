@@ -7,7 +7,7 @@
  const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let answer='',opened=false;
  const rand=n=>{const b=new Uint32Array(1);crypto.getRandomValues(b);return b[0]%n;};
  function challenge(){
-  answer=Array.from({length:5},()=>alphabet[rand(alphabet.length)]).join('');field.value='';
+  const chars=[alphabet[rand(24)],'23456789'[rand(8)],...Array.from({length:3},()=>alphabet[rand(alphabet.length)])];for(let i=chars.length-1;i>0;i--){const j=rand(i+1);[chars[i],chars[j]]=[chars[j],chars[i]];}answer=chars.join('');field.value='';
   const ctx=canvas.getContext('2d');ctx.fillStyle='#f2edf8';ctx.fillRect(0,0,280,90);
   for(let i=0;i<8;i++){ctx.beginPath();ctx.strokeStyle='#bcb0cf';ctx.moveTo(rand(280),rand(90));ctx.lineTo(rand(280),rand(90));ctx.stroke();}
   [...answer].forEach((letter,i)=>{ctx.save();ctx.translate(32+i*49,48+rand(13));ctx.rotate((rand(15)-7)*Math.PI/180);ctx.fillStyle='#352b49';ctx.font='bold 34px sans-serif';ctx.fillText(letter,0,0);ctx.restore();});
@@ -18,7 +18,7 @@
   content.querySelectorAll('script[src]').forEach(s=>s.remove());
   const source=[...document.scripts].find(s=>s.src.includes('/private.js'))?.src;
   const base=new URL('.',source||location.href),version=new URL(source||location.href).search;
-  for(const file of ['app.js',...(content.querySelector('#static-list')?['export.js']:[]),'engagement.js']){
+  for(const file of ['app.js',...(content.querySelector('#pop-list')?['pop-list.js']:content.querySelector('#static-list')?['export.js']:[]),'engagement.js']){
    await new Promise(resolve=>{const script=document.createElement('script');script.src=new URL(file+version,base).href;script.onload=script.onerror=resolve;document.body.append(script);});
   }
  }
