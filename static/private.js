@@ -1,46 +1,33 @@
+/* A reading gate for static POP Live pages, not an authentication boundary. */
 (() => {
-  const form = document.querySelector('#private-unlock');
-  const content = document.querySelector('#private-content');
-  const payloadNode = document.querySelector('#private-payload');
-  if (!form || !content || !payloadNode || !window.crypto?.subtle) return;
-  const from64 = value => Uint8Array.from(atob(value), c => c.charCodeAt(0));
-  const equal = (a,b) => a.length === b.length && a.every((value,index) => value === b[index]);
-  async function hmacBytes(keyBytes,data) {
-    const key = await crypto.subtle.importKey('raw',keyBytes,{name:'HMAC',hash:'SHA-256'},false,['sign']);
-    return new Uint8Array(await crypto.subtle.sign('HMAC',key,data));
+ 'use strict';
+ const form=document.querySelector('#private-unlock'),content=document.querySelector('#private-content'),template=document.querySelector('#pop-content-template'),canvas=document.querySelector('#pop-captcha');
+ if(!form||!content||!template||!canvas)return;
+ const field=form.elements.captcha,error=document.querySelector('#private-error'),lock=form.closest('.private-lock'),key='pop-live-navigation-once';
+ const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let answer='',opened=false;
+ const rand=n=>{const b=new Uint32Array(1);crypto.getRandomValues(b);return b[0]%n;};
+ function challenge(){
+  answer=Array.from({length:5},()=>alphabet[rand(alphabet.length)]).join('');field.value='';
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#f2edf8';ctx.fillRect(0,0,280,90);
+  for(let i=0;i<8;i++){ctx.beginPath();ctx.strokeStyle='#bcb0cf';ctx.moveTo(rand(280),rand(90));ctx.lineTo(rand(280),rand(90));ctx.stroke();}
+  [...answer].forEach((letter,i)=>{ctx.save();ctx.translate(32+i*49,48+rand(13));ctx.rotate((rand(15)-7)*Math.PI/180);ctx.fillStyle='#352b49';ctx.font='bold 34px sans-serif';ctx.fillText(letter,0,0);ctx.restore();});
+ }
+ async function open(){
+  if(opened)return;opened=true;content.replaceChildren(template.content.cloneNode(true));lock.hidden=true;content.hidden=false;
+  // Template scripts are inert. Initialize only content-specific scripts, once.
+  content.querySelectorAll('script[src]').forEach(s=>s.remove());
+  const source=[...document.scripts].find(s=>s.src.includes('/private.js'))?.src;
+  const base=new URL('.',source||location.href),version=new URL(source||location.href).search;
+  for(const file of ['app.js',...(content.querySelector('#static-list')?['export.js']:[]),'engagement.js']){
+   await new Promise(resolve=>{const script=document.createElement('script');script.src=new URL(file+version,base).href;script.onload=script.onerror=resolve;document.body.append(script);});
   }
-  async function unlock(password) {
-    const payload = JSON.parse(payloadNode.textContent);
-    const salt=from64(payload.salt), nonce=from64(payload.nonce), cipher=from64(payload.cipher), expected=from64(payload.tag);
-    const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
-    const bits=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:200000},base,512));
-    const signed=new Uint8Array(nonce.length+cipher.length); signed.set(nonce); signed.set(cipher,nonce.length);
-    const actual=await hmacBytes(bits.slice(32),signed);
-    if (!equal(actual,expected)) throw new Error('wrong password');
-    const plain=new Uint8Array(cipher.length);
-    for(let start=0,counter=0;start<cipher.length;start+=32,counter++) {
-      const input=new Uint8Array(20); input.set(nonce); new DataView(input.buffer).setUint32(16,counter);
-      const stream=await hmacBytes(bits.slice(0,32),input);
-      for(let i=0;i<Math.min(32,cipher.length-start);i++) plain[start+i]=cipher[start+i]^stream[i];
-    }
-    return new TextDecoder().decode(plain);
-  }
-  async function openWith(password) {
-    const error=document.querySelector('#private-error');
-    const button=form.querySelector('button'); button.disabled=true; error.textContent='正在解鎖…';
-    try {
-      content.innerHTML=await unlock(password);
-      form.closest('.private-lock').hidden=true; content.hidden=false;
-      const source=document.currentScript?.src || [...document.scripts].find(x=>x.src.includes('/private.js'))?.src || '';
-      const base=source ? new URL('.',source) : new URL('../static/',location.href);
-      for (const file of ['app.js?v=1.4.4-layout-unlocked', ...(content.querySelector('#static-list')?['export.js?v=1.4.4-layout-unlocked']:[])]) {
-        const script=document.createElement('script'); script.src=new URL(file,base); document.body.append(script);
-      }
-    } catch { error.textContent='密碼不正確，請重新輸入。'; button.disabled=false; }
-  }
-  form.addEventListener('submit',async event => {
-    event.preventDefault();
-    await openWith(new FormData(form).get('password'));
-  });
-  addEventListener('pagehide',()=>{ content.replaceChildren(); content.hidden=true; });
+ }
+ document.querySelector('#pop-captcha-refresh').addEventListener('click',()=>{challenge();error.textContent='';field.focus();});
+ form.addEventListener('submit',event=>{event.preventDefault();if(field.value.trim().toUpperCase()!==answer){challenge();error.textContent='驗證碼不正確，已更換圖片，請再試一次。';field.focus();return;}error.textContent='';open();});
+ // A one-use handoff permits list/article navigation, never a remembered login.
+ content.addEventListener('click',e=>{const link=e.target.closest('a[href]');if(!link||link.target==='_blank'||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const url=new URL(link.href);if(url.origin!==location.origin)return;if(!url.pathname.includes('/episode/')&&!url.pathname.includes('/pop-live/'))return;try{sessionStorage.setItem(key,JSON.stringify({url:url.href,at:Date.now()}));}catch{}});
+ let pass=null;try{pass=JSON.parse(sessionStorage.getItem(key)||'null');sessionStorage.removeItem(key);}catch{}
+ challenge();if(pass?.url===location.href&&Date.now()-pass.at>=0&&Date.now()-pass.at<10000)open();
+ addEventListener('pagehide',()=>{content.hidden=true;lock.hidden=false;});
+ addEventListener('pageshow',event=>{if(event.persisted)location.reload();});
 })();
