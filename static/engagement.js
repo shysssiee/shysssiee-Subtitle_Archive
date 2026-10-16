@@ -110,13 +110,27 @@ function lucianHeart(root,request){
  let visitor='';try{visitor=localStorage.getItem('archive-engagement-visitor')||'';if(!/^[a-f0-9]{32}$/.test(visitor)){visitor=[...crypto.getRandomValues(new Uint8Array(16))].map(n=>n.toString(16).padStart(2,'0')).join('');localStorage.setItem('archive-engagement-visitor',visitor);}}catch{/* Disabled storage still permits a temporary session, not durable identity. */}
  if(!visitor)visitor=[...crypto.getRandomValues(new Uint8Array(16))].map(n=>n.toString(16).padStart(2,'0')).join('');
  async function post(url,body){const res=await fetch(url,{method:'POST',headers:url.includes('/functions/')?{...headers,Authorization:'Bearer '+cfg.functionBearer}:headers,body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});if(!res.ok)throw new Error(res.status===429?'操作太頻繁，請稍後再試':'目前無法連線，請稍後再試');return res.json();}
- const summary=slugs=>post(cfg.url+'/rest/v1/rpc/archive_engagement_summary',{p_slugs:slugs});
+ // Keep a ten-minute view snapshot across page visits; interactions stay live.
+ const viewSnapshots=new Map(),viewTTL=10*60*1000,viewPrefix='archive-view-snapshot-v1:';
+ function snapshotViews(row){
+  if(document.querySelector('.article-admin-table'))return row;
+  let saved=viewSnapshots.get(row.slug);
+  if(!saved){try{saved=JSON.parse(localStorage.getItem(viewPrefix+row.slug)||'null');}catch{}}
+  const now=Date.now();
+  if(!saved||!Number.isFinite(saved.at)||saved.at>now||now-saved.at>=viewTTL||!Number.isFinite(saved.views)||saved.views<0){
+   saved={at:now,views:Number(row.views)||0};
+   try{localStorage.setItem(viewPrefix+row.slug,JSON.stringify(saved));}catch{}
+  }
+  viewSnapshots.set(row.slug,saved);
+  return {...row,views:saved.views};
+ }
+ const summary=async slugs=>(await post(cfg.url+'/rest/v1/rpc/archive_engagement_summary',{p_slugs:slugs})).map(snapshotViews);
  const action=(page,op,value)=>post(cfg.url+'/functions/v1/'+cfg.functionName,{slug:page,visitor,action:op,value});
  let heart,rating,last={liked:false,rating:null,likes:0},busy=false,localTouched=false,ready=local,loadedState=false;
  const panel=article?.querySelector('.engagement-panel'),status=panel?.querySelector('.engagement-status');
  if(article&&article.dataset.engagementPublic==='0'){if(panel)panel.hidden=true;return;}
  function showError(message){if(status)status.textContent=message;}
- function paint(data,animate=false){last={...last,...data};if(!panel)return;article.querySelector('[data-view-count]').textContent=fmt(data.views);heart.paint(!!last.liked,fmt(data.likes),animate);if(!localTouched)rating.set(Number(last.rating||0));panel.querySelector('.engagement-average').textContent=Number(data.rating_count)?'平均 '+Number(data.rating_average).toFixed(1)+'／5 · '+fmt(data.rating_count)+' 人評分':'尚無評分，歡迎分享你的感受';}
+ function paint(data,animate=false){last={...last,...data};if(!panel)return;heart.paint(!!last.liked,fmt(data.likes),animate);if(!localTouched)rating.set(Number(last.rating||0));panel.querySelector('.engagement-average').textContent=Number(data.rating_count)?'平均 '+Number(data.rating_average).toFixed(1)+'／5 · '+fmt(data.rating_count)+' 人評分':'尚無評分，歡迎分享你的感受';}
  async function commit(op,value){
   if(busy)return;if(!ready){showError('正在載入，請稍候。');return;}if(local){localTouched=true;if(op==='like'){heart.paint(value===1,fmt(last.likes),true);last.liked=value===1;}else{last.rating=value;rating.set(value);}showError('本機預覽：這次操作不會送出，也不會計入正式統計。');return;}
   busy=true;heart.btn.disabled=true;rating.wrap.setAttribute('aria-disabled','true');showError('正在儲存…');
@@ -129,12 +143,12 @@ function lucianHeart(root,request){
   heart=lucianHeart(likeRoot,on=>commit('like',on?1:0));rating=lucianRating(rateRoot,n=>commit('rate',n));
   // No sample numbers: show unavailable until the live service answers.
   panel.querySelector('.engagement-preview').textContent=local?'本機預覽・不計數':'';
-  summary([slug]).then(rows=>{if(rows[0]){if(!loadedState)paint(rows[0]);}else throw new Error('此文章的統計尚未啟用');}).catch(e=>{panel.querySelector('.engagement-average').textContent='統計暫時無法載入';showError('目前無法讀取統計，請稍後再試。');});
+  summary([slug]).then(rows=>{if(rows[0]){article.querySelector('[data-view-count]').textContent=fmt(rows[0].views);if(!loadedState)paint(rows[0]);}else throw new Error('此文章的統計尚未啟用');}).catch(e=>{panel.querySelector('.engagement-average').textContent='統計暫時無法載入';showError('目前無法讀取統計，請稍後再試。');});
   if(!local)action(slug,'state').then(data=>{loadedState=true;paint(data);}).catch(()=>showError('目前無法讀取你的互動紀錄，仍可稍後重試。')).finally(()=>{ready=true;});
  }
  // Require eight visible seconds. Local author previews never submit views.
  if(!local&&document.body.classList.contains('public-page')){
-  let visibleMs=0;const timer=setInterval(()=>{if(document.visibilityState!=='visible')return;visibleMs+=1000;if(visibleMs<8000)return;clearInterval(timer);action('site-total','view').catch(()=>{});if(slug&&panel)action(slug,'view').then(paint).catch(()=>{});},1000);
+  let visibleMs=0;const timer=setInterval(()=>{if(document.visibilityState!=='visible')return;visibleMs+=1000;if(visibleMs<8000)return;clearInterval(timer);action('site-total','view').catch(()=>{});if(slug&&panel)action(slug,'view').catch(()=>{});},1000);
   window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
  }
  const cache=new Map();let pendingTimer;
