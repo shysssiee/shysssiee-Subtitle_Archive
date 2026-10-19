@@ -62,14 +62,23 @@
       input.value = button.dataset.addMember; commit(); input.focus();
     }));
     groupSelect?.addEventListener('change', paintSuggestions);
+    let dirty=false, leaving=false;
+    episodeForm.addEventListener('input',()=>{dirty=true;});
+    episodeForm.addEventListener('change',()=>{dirty=true;});
+    episodeForm.querySelector('.episode-cancel')?.addEventListener('click',event=>{
+      if(dirty&&!window.confirm('有尚未儲存的內容，確定取消並返回文章管理嗎？'))event.preventDefault();
+      else leaving=true;
+    });
+    addEventListener('beforeunload',event=>{if(dirty&&!leaving){event.preventDefault();event.returnValue='';}});
     episodeForm.addEventListener('submit', event => {
       commit();
-      const status = episodeForm.querySelector('select[name="status"]').value;
+      const status = event.submitter?.value || 'draft';
       if (['published','private'].includes(status) && episodeForm.dataset.wasStatus !== status) {
         const message = status === 'private' ? '確定將這篇文章設為私密嗎？匯出網站時需要設定共用密碼。' : '確定公開發布這篇文章嗎？公開後會出現在網站上。';
         if (!window.confirm(message)) { event.preventDefault(); return; }
         episodeForm.querySelector('input[name="confirm_publish"]').value = '1';
       }
+      leaving=true;
     });
     paintTags(); paintSuggestions();
   }
