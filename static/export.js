@@ -18,15 +18,15 @@
   const pageSize = 12;
   if (query) query.value = params.get('q') || '';
   const buttons = [...document.querySelectorAll('[data-filter]')];
-  const memberButtons = [...document.querySelectorAll('[data-member]')];
-  const podcastMember = document.querySelector('#podcast-member-filter');
+  const memberButtons = [...document.querySelectorAll('button[data-member]')];
+  const podcastMember = document.querySelector('#podcast-member-filter,#catalog-member-filter');
   const memberOptions = podcastMember ? [...podcastMember.querySelectorAll('option[data-group]')].map(option => ({value:option.value,label:option.textContent,group:option.dataset.group})) : [];
   if (!buttons.some(button => button.dataset.filter === group)) group = '';
   function renderPodcastMembers() {
     if (!podcastMember) return;
-    podcastMember.replaceChildren(new Option(group ? '全部成員' : '請先選擇團體',''));
-    memberOptions.filter(option => group && option.group === group).forEach(option => podcastMember.add(new Option(option.label,option.value)));
-    podcastMember.disabled=!group;
+    podcastMember.replaceChildren(new Option('全部成員',''));
+    const unique=new Map();memberOptions.filter(option=>!group||option.group===group).forEach(option=>unique.set(option.value,option));unique.forEach(option=>podcastMember.add(new Option(option.label,option.value)));
+    podcastMember.disabled=memberOptions.length===0;
     if (![...podcastMember.options].some(option => option.value === member)) member='';
     podcastMember.value=member;
   }
