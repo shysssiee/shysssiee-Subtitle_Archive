@@ -2,6 +2,7 @@
 /* Lucian UX/UI Prompt #025 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#025 */
 (() => {
  const home=document.querySelector('.home-featured');
+ if(home&&new URLSearchParams(location.search).get('group')){const target=new URL('videos/',location.href);target.search=location.search;target.hash=location.hash;location.replace(target.href);return;}
  if(home){const pool=[...home.querySelector('#featured-pool').content.querySelectorAll('.episode-row')];home.querySelector('#home-shuffle')?.addEventListener('click',()=>{const choices=pool.slice();for(let i=choices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[choices[i],choices[j]]=[choices[j],choices[i]];}home.querySelector('#recommend-list').replaceChildren(...choices.slice(0,2).map(c=>c.cloneNode(true)));});home.querySelector('#home-shuffle')?.click();}
  const clock=document.querySelector('#admin-clock');if(clock){const update=()=>{clock.textContent=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',weekday:'long',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());};update();const timer=setInterval(update,1000);addEventListener('pagehide',()=>clearInterval(timer),{once:true});}
  // Notched floating label, ported from #025; validation stays native to the real form.
