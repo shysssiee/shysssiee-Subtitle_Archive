@@ -305,14 +305,25 @@
       if (anchor) anchor.style.minHeight = '';
     }
   }
-  let expandedBefore=null,controlsTimer=null;
+  let expandedBefore=null,controlsTimer=null,keyboardControls=false,pointerBusy=false;
   const panel=box?.querySelector('.player-control-panel');
   const controlsToggle=document.createElement('button');controlsToggle.type='button';controlsToggle.className='expanded-controls-toggle';controlsToggle.textContent='播放與字幕設定';controlsToggle.setAttribute('aria-expanded','true');box?.append(controlsToggle);
   function showExpandedControls(show){if(!box)return;box.classList.toggle('expanded-controls-hidden',!show);if(panel)panel.inert=!show;controlsToggle.setAttribute('aria-expanded',String(show));}
-  function keepExpandedControls(){clearTimeout(controlsTimer);if(!box?.classList.contains('expanded-player'))return;showExpandedControls(true);controlsTimer=setTimeout(()=>{if(!panel?.contains(document.activeElement)&&!panel?.querySelector('details[open]')&&box.dataset.captionPosition==='overlay')showExpandedControls(false);},4500);}
+  function keepExpandedControls(){clearTimeout(controlsTimer);if(!box?.classList.contains('expanded-player'))return;showExpandedControls(true);controlsTimer=setTimeout(()=>{if(pointerBusy||(keyboardControls&&panel?.contains(document.activeElement))){keepExpandedControls();return;}if(box.dataset.captionPosition==='overlay')showExpandedControls(false);},3000);}
   function syncExpandedPlayer(){if(!box)return;const expanded=document.fullscreenElement===box||box.classList.contains('theater-player');box.classList.toggle('expanded-player',expanded);if(expanded){if(expandedBefore===null){expandedBefore=box.dataset.captionPosition||'below';setCaptionPosition('overlay',false);}keepExpandedControls();}else{clearTimeout(controlsTimer);showExpandedControls(true);if(expandedBefore!==null){setCaptionPosition(expandedBefore,false);expandedBefore=null;}}}
-  controlsToggle.addEventListener('click',()=>{clearTimeout(controlsTimer);showExpandedControls(box.classList.contains('expanded-controls-hidden'));});
-  box?.addEventListener('pointermove',keepExpandedControls);panel?.addEventListener('focusin',()=>{clearTimeout(controlsTimer);showExpandedControls(true);});
+  controlsToggle.addEventListener('click',()=>{if(box.classList.contains('expanded-controls-hidden'))keepExpandedControls();else{clearTimeout(controlsTimer);showExpandedControls(false);}});
+  // Hidden-mode wake surface receives the first touch/mouse movement above the cross-origin YouTube iframe.
+  const wake=document.createElement('div');wake.className='expanded-wake-surface';wake.setAttribute('aria-hidden','true');box?.append(wake);
+  wake.addEventListener('pointermove',()=>{keyboardControls=false;keepExpandedControls();});
+  wake.addEventListener('pointerdown',event=>{event.preventDefault();event.stopPropagation();keyboardControls=false;keepExpandedControls();});
+  wake.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();});
+  box?.addEventListener('pointermove',()=>{keyboardControls=false;keepExpandedControls();});
+  box?.addEventListener('pointerdown',event=>{keyboardControls=false;if(event.target.closest('.expanded-controls-toggle'))return;pointerBusy=event.target.matches('input[type=range]');keepExpandedControls();});
+  document.addEventListener('pointerup',()=>{if(pointerBusy){pointerBusy=false;keepExpandedControls();}});
+  document.addEventListener('pointercancel',()=>{pointerBusy=false;keepExpandedControls();});
+  box?.addEventListener('keydown',()=>{keyboardControls=true;keepExpandedControls();});
+  panel?.addEventListener('focusin',keepExpandedControls);
+  panel?.addEventListener('focusout',()=>{if(!keyboardControls)keepExpandedControls();});
   document.addEventListener('fullscreenchange',syncExpandedPlayer);
   addEventListener('pagehide',()=>clearTimeout(controlsTimer),{once:true});
   theaterButton?.addEventListener('click', () => setTheater(!box?.classList.contains('theater-player')));

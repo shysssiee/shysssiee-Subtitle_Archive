@@ -157,3 +157,9 @@
 @media(max-width:700px){.public-page .home-featured .featured-track>.featured-cover-card{flex-basis:92%}.public-page .featured-cover-card .featured-cover-title{font-size:14px!important;padding:10px 12px!important}.featured-stage :is(#featured-prev,#featured-next){width:36px;height:36px;min-height:36px}.player-box.expanded-player .player-control-panel{max-height:42dvh}.player-box.expanded-player .expanded-controls-toggle{font-size:11px;min-height:36px;padding:7px 9px}}
 @media(prefers-reduced-motion:reduce){.player-box.expanded-player .player-control-panel{transition:none}}
 .player-box.expanded-player>.caption-notice{display:none!important}
+
+/* v1.6 r5: automatic slide-away controls; captions remain above the video. */
+.expanded-wake-surface{display:none}.player-box.expanded-player.expanded-controls-hidden .expanded-wake-surface{display:block;position:absolute;inset:0;z-index:6;touch-action:manipulation;background:transparent}
+.player-box.expanded-player .player-control-panel{transition:transform .25s ease,opacity .25s ease,visibility .25s;transform:translate(-50%,0)}
+.player-box.expanded-player.expanded-controls-hidden .player-control-panel{transform:translate(-50%,105%);opacity:0;visibility:hidden;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.player-box.expanded-player .player-control-panel{transition:none}}
