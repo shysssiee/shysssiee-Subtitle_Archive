@@ -122,9 +122,12 @@
   const coverItems=[...document.querySelectorAll('.cover-select-item')];
   let coverPage=1, previewUrl=null, coverBeforeRemoval=null;
   function renderCoverPage() {
-    const total=Math.max(1,Math.ceil(coverItems.length/20));
+    const category=document.querySelector("#cover-picker-category")?.value||"";
+    const filtered=coverItems.filter(item=>!category||(item.dataset.coverCategories||"uncategorized").split(",").includes(category));
+    const total=Math.max(1,Math.ceil(filtered.length/20));
     coverPage=Math.max(1,Math.min(total,coverPage));
-    coverItems.forEach((item,index)=>{ item.hidden=index<(coverPage-1)*20 || index>=coverPage*20; });
+    coverItems.forEach(item=>{item.hidden=true;});
+    filtered.forEach((item,index)=>{item.hidden=index<(coverPage-1)*20 || index>=coverPage*20;});
     const pageText=document.querySelector('#cover-picker-page');
     if(pageText) pageText.textContent=`第 ${coverPage} / ${total} 頁`;
     const prev=document.querySelector('#cover-picker-prev'),next=document.querySelector('#cover-picker-next');
@@ -142,6 +145,7 @@
   });
   document.querySelector('#cover-picker-close')?.addEventListener('click',()=>coverDialog?.close());
   coverDialog?.addEventListener('click',event=>{if(event.target===coverDialog){const rect=coverDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)coverDialog.close();}});
+  document.querySelector('#cover-picker-category')?.addEventListener('change',()=>{coverPage=1;renderCoverPage();});
   document.querySelector('#cover-picker-prev')?.addEventListener('click',()=>{coverPage--;renderCoverPage();document.querySelector('.cover-dialog-scroll')?.scrollTo(0,0);});
   document.querySelector('#cover-picker-next')?.addEventListener('click',()=>{coverPage++;renderCoverPage();document.querySelector('.cover-dialog-scroll')?.scrollTo(0,0);});
   coverItems.forEach(item=>item.addEventListener('click',()=>{
@@ -232,12 +236,12 @@
     if (sizeSlider) sizeSlider.value = String(captionSize);
     try { localStorage.setItem(captionSizeKey, String(captionSize)); } catch { /* Storage may be unavailable. */ }
   }
-  function setCaptionPosition(value) {
+  function setCaptionPosition(value, persist = true) {
     const mode = value === 'overlay' ? 'overlay' : 'below';
     (mode === 'overlay' ? captionOverlay : captionBox)?.prepend(captionDisplay);
     box?.setAttribute('data-caption-position', mode);
     if (positionSelect) positionSelect.value = mode;
-    try { localStorage.setItem('voice-archive-caption-position', mode); } catch { /* Storage may be unavailable. */ }
+    try { if(persist)localStorage.setItem('voice-archive-caption-position', mode); } catch { /* Storage may be unavailable. */ }
   }
   const appearance={preset:document.querySelector('#caption-preset'),opacity:document.querySelector('#caption-opacity'),height:document.querySelector('#caption-height')};
   const defaults={preset:'white-black',opacity:'25',height:'2'};
@@ -263,12 +267,13 @@
   sizeSlider?.addEventListener('input', () => setCaptionSize(sizeSlider.value));
   document.querySelector('#player-fullscreen')?.addEventListener('click', async () => {
     if (!box) return;
-    if (document.fullscreenElement) { await document.exitFullscreen(); return; }
+    if (document.fullscreenElement===box) { await document.exitFullscreen(); return; }
+    if(box.classList.contains('theater-player')){setTheater(false);return;}
     setTheater(false);
     box.classList.remove('floating-player');
     document.body.classList.remove('has-floating-player');
     if (anchor) anchor.style.minHeight = '';
-    try { await box.requestFullscreen(); }
+    try { if(!box.requestFullscreen)throw new Error('fullscreen unavailable');await box.requestFullscreen(); }
     catch { setTheater(true); }
   });
   if (captionBox) {
@@ -292,6 +297,7 @@
   function setTheater(open) {
     if (!box) return;
     box.classList.toggle('theater-player', open);
+    syncExpandedPlayer();
     document.body.classList.toggle('has-theater-player', open);
     theaterButton?.setAttribute('aria-pressed', String(open));
     if (open && box.classList.contains('floating-player')) {
@@ -299,8 +305,18 @@
       if (anchor) anchor.style.minHeight = '';
     }
   }
+  let expandedBefore=null,controlsTimer=null;
+  const panel=box?.querySelector('.player-control-panel');
+  const controlsToggle=document.createElement('button');controlsToggle.type='button';controlsToggle.className='expanded-controls-toggle';controlsToggle.textContent='播放與字幕設定';controlsToggle.setAttribute('aria-expanded','true');box?.append(controlsToggle);
+  function showExpandedControls(show){if(!box)return;box.classList.toggle('expanded-controls-hidden',!show);if(panel)panel.inert=!show;controlsToggle.setAttribute('aria-expanded',String(show));}
+  function keepExpandedControls(){clearTimeout(controlsTimer);if(!box?.classList.contains('expanded-player'))return;showExpandedControls(true);controlsTimer=setTimeout(()=>{if(!panel?.contains(document.activeElement)&&!panel?.querySelector('details[open]')&&box.dataset.captionPosition==='overlay')showExpandedControls(false);},4500);}
+  function syncExpandedPlayer(){if(!box)return;const expanded=document.fullscreenElement===box||box.classList.contains('theater-player');box.classList.toggle('expanded-player',expanded);if(expanded){if(expandedBefore===null){expandedBefore=box.dataset.captionPosition||'below';setCaptionPosition('overlay',false);}keepExpandedControls();}else{clearTimeout(controlsTimer);showExpandedControls(true);if(expandedBefore!==null){setCaptionPosition(expandedBefore,false);expandedBefore=null;}}}
+  controlsToggle.addEventListener('click',()=>{clearTimeout(controlsTimer);showExpandedControls(box.classList.contains('expanded-controls-hidden'));});
+  box?.addEventListener('pointermove',keepExpandedControls);panel?.addEventListener('focusin',()=>{clearTimeout(controlsTimer);showExpandedControls(true);});
+  document.addEventListener('fullscreenchange',syncExpandedPlayer);
+  addEventListener('pagehide',()=>clearTimeout(controlsTimer),{once:true});
   theaterButton?.addEventListener('click', () => setTheater(!box?.classList.contains('theater-player')));
-  theaterClose?.addEventListener('click', () => setTheater(false));
+  theaterClose?.addEventListener('click', async () => {if(document.fullscreenElement===box)await document.exitFullscreen();setTheater(false);});
   document.addEventListener('keydown', event => { if (event.key === 'Escape') setTheater(false); });
   const symbols = {
     play: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
@@ -371,7 +387,7 @@
     holder.querySelector('.load-player')?.remove();
     const frame = document.createElement('iframe');
     frame.id = 'youtube-player';
-    frame.src = `https://www.youtube.com/embed/${id}?enablejsapi=1&rel=0&origin=${encodeURIComponent(location.origin)}${autoPlay ? '&autoplay=1' : ''}`;
+    frame.src = `https://www.youtube.com/embed/${id}?enablejsapi=1&rel=0&fs=0&playsinline=1&origin=${encodeURIComponent(location.origin)}${autoPlay ? '&autoplay=1' : ''}`;
     frame.referrerPolicy = 'strict-origin-when-cross-origin';
     frame.title = 'YouTube 語音直播影片播放器';
     frame.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';
