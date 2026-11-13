@@ -14,6 +14,7 @@
   const params = new URLSearchParams(location.search);
   let group = params.get('group') || '';
   let member = '';
+  let year = '', month = '', category = '';
   let page = 1;
   const pageSize = 12;
   if (query) query.value = params.get('q') || '';
@@ -30,6 +31,14 @@
     if (![...podcastMember.options].some(option => option.value === member)) member='';
     podcastMember.value=member;
   }
+  const count = document.querySelector('#archive-count');
+  document.querySelector('#archive-clear')?.addEventListener('click', () => {
+    group = ''; member = ''; year = ''; month = ''; category = ''; page = 1; query.value = ''; sort.value = 'desc';
+    const url = new URL(location.href);
+    url.searchParams.delete('group'); url.searchParams.delete('q');
+    history.replaceState(history.state, '', url);
+    renderPodcastMembers(); filter();
+  });
   renderPodcastMembers();
   function shuffle() {
     stopEntrance();
@@ -46,12 +55,36 @@
     recommendations.hidden = choices.length === 0;
   }
   let stopEntrance=()=>{};
+  function filterRow(id, label, options, selected, select) {
+    const row = document.getElementById(id);
+    if (!row) return;
+    const focused = row.contains(document.activeElement);
+    row.replaceChildren(...[['', label], ...options].map(([value, title]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chip' + (value === selected ? ' selected' : '');
+      button.setAttribute('aria-pressed', String(value === selected));
+      button.textContent = title;
+      button.onclick = () => { select(value); page = 1; filter(); };
+      return button;
+    }));
+    if (focused) row.querySelector('.selected')?.focus();
+  }
+  const years = [...new Set(cards.map(card => card.dataset.date.slice(0, 4)).filter(Boolean))].sort().reverse();
+  const months = Array.from({length:12}, (_, i) => [String(i + 1).padStart(2, '0'), (i + 1) + '月']);
+  const categories = [...new Set(cards.map(card => card.dataset.category).filter(Boolean))].sort();
   function filter() {
     stopEntrance();
     buttons.forEach(button => {button.classList.toggle('selected', button.dataset.filter === group);button.setAttribute('aria-pressed',String(button.dataset.filter===group));});
     memberButtons.forEach(button => button.classList.toggle('selected', button.dataset.member === member));
     const term = (query?.value || '').trim().toLocaleLowerCase();
-    const filtered = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)) && (!term || card.dataset.search.includes(term)));
+    const memberLabel = document.querySelector('#archive-member-label');
+    if (memberLabel) memberLabel.textContent = member || '全部成員';
+    filterRow('archive-members', '全部成員', [...(podcastMember?.options || [])].slice(1).map(option => [option.value, option.textContent]), member, value => { member = value; });
+    filterRow('archive-years', '全部年份', years.map(value => [value,value]), year, value => { year = value; });
+    filterRow('archive-months', '全部月份', months, month, value => { month = value; });
+    filterRow('archive-categories', '全部分類', categories.map(value => [value,value]), category, value => { category = value; });
+    const filtered = cards.filter(card => (!group || (card.dataset.groups || card.dataset.group || '').split(',').includes(group)) && (!member || (card.dataset.member || '').split(',').map(x=>x.trim()).includes(member)) && (!term || card.dataset.search.includes(term)) && (!year || card.dataset.date.startsWith(year)) && (!month || card.dataset.date.slice(5,7) === month) && (!category || card.dataset.category === category));
     if (recent) {
       const latest = poolCards.filter(card=>(!group||(card.dataset.groups||card.dataset.group||'').split(',').includes(group))&&(!member||(card.dataset.member||'').split(',').map(x=>x.trim()).includes(member))&&(!term||card.dataset.search.includes(term))).sort((a,b) => (b.dataset.published || '').localeCompare(a.dataset.published || ''));
       recent.replaceChildren(...latest.slice(0,4).map(card => {
@@ -69,6 +102,7 @@
     cards.forEach(card => { card.hidden = true; });
     filtered.forEach((card, index) => { list.append(card); card.hidden = index < (page-1)*pageSize || index >= page*pageSize; });
     empty.hidden = filtered.length > 0;
+    if (count) count.textContent = `共 ${filtered.length} 篇文章`;
     window.dispatchEvent(new CustomEvent("archive:filter",{detail:{count:filtered.length}}));
     const total = Math.max(1, Math.ceil(filtered.length/pageSize));
     pager.replaceChildren();
@@ -92,7 +126,7 @@
       jump.onsubmit=event=>{event.preventDefault();const target=Math.max(1,Math.min(total,Number(input.value)||page));page=target;filter();list.scrollIntoView({block:'start'});}; pager.append(jump);
     }
   }
-  buttons.forEach(button => button.addEventListener('click', () => { group = button.dataset.filter; member=''; page = 1; renderPodcastMembers(); filter(); shuffle(); }));
+  buttons.forEach(button => button.addEventListener('click', () => { group = button.dataset.filter; member=''; document.querySelector('.archive-member-disclosure')?.removeAttribute('open'); page = 1; renderPodcastMembers(); filter(); shuffle(); }));
   memberButtons.forEach(button => button.addEventListener('click', () => {
     member = button.dataset.member;
     group = member ? (button.dataset.memberGroup || '') : '';

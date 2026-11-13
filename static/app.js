@@ -196,6 +196,7 @@
   const transcript = document.querySelector('#transcript');
   const lines = [...document.querySelectorAll('.line[data-time]')];
   const offsetInput = document.querySelector('#offset');
+  document.querySelector('#reset-caption-offset')?.addEventListener('click',()=>{offsetInput.value='0';});
   const playButton = document.querySelector('#play-toggle');
   const seekBack = document.querySelector('#seek-back');
   const seekForward = document.querySelector('#seek-forward');
